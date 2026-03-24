@@ -39,7 +39,18 @@ describe('lookupWord', () => {
 		);
 
 		const result = await lookupWord('hello');
-		expect(result).toEqual({ ok: true, entries: [mockEntry] });
+		const filtered = {
+			...mockEntry,
+			meanings: [
+				{
+					...mockEntry.meanings[0],
+					synonyms: [],
+					antonyms: [],
+					definitions: [{ ...mockEntry.meanings[0].definitions[0], synonyms: [], antonyms: [] }]
+				}
+			]
+		};
+		expect(result).toEqual({ ok: true, entries: [filtered] });
 	});
 
 	it('returns not-found for a 404 response', async () => {
