@@ -32,6 +32,10 @@ describe('isBlockedWord', () => {
 		expect(isBlockedWord('wetback')).toBe(true);
 		expect(isBlockedWord('dyke')).toBe(true);
 		expect(isBlockedWord('honky')).toBe(true);
+		expect(isBlockedWord('negro')).toBe(true);
+		expect(isBlockedWord('mulatto')).toBe(true);
+		expect(isBlockedWord('half-breed')).toBe(true);
+		expect(isBlockedWord('gypsy')).toBe(true);
 	});
 
 	it('blocks British profanity', () => {
@@ -157,6 +161,28 @@ describe('isInappropriate', () => {
 	it('flags intensifier definitions (bloody/damn)', () => {
 		expect(isInappropriate('Used as an intensifier.')).toBe(true);
 		expect(isInappropriate('(intensifier) Used to express anger, annoyance, shock')).toBe(true);
+	});
+
+	it('flags slang sexual definitions', () => {
+		expect(isInappropriate('Fellatio or cunnilingus; oral sex.')).toBe(true);
+		expect(isInappropriate('To have sex with')).toBe(true);
+		expect(isInappropriate('A vibrator (sex toy).')).toBe(true);
+		expect(isInappropriate('To fellate; to perform oral sex on')).toBe(true);
+		expect(isInappropriate('A lecherous man.')).toBe(true);
+	});
+
+	it('flags racial slur definitions', () => {
+		expect(isInappropriate('(mildly) A Caucasian who behaves as if they were Asian')).toBe(true);
+		expect(isInappropriate('A black person.')).toBe(true);
+		expect(isInappropriate('A white person.')).toBe(true);
+		expect(
+			isInappropriate('A person who acts like a white person despite being of another race')
+		).toBe(true);
+		expect(isInappropriate('Of or relating to sub-Saharan peoples')).toBe(true);
+		expect(isInappropriate('A red-skinned variety')).toBe(true);
+		expect(isInappropriate('A dark-skinned person')).toBe(true);
+		expect(isInappropriate('Of mixed black and white descent')).toBe(true);
+		expect(isInappropriate('A racial slur used against')).toBe(true);
 	});
 
 	it('does not flag anal when part of analogy/analysis', () => {
