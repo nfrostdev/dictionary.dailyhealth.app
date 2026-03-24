@@ -12,12 +12,12 @@
 
 	async function handleSearch(word: string) {
 		loading = true;
-		result = null;
 		suggestions = [];
-		result = await lookupWord(word);
-		if (!result.ok && result.error === 'not-found') {
+		const response = await lookupWord(word);
+		if (!response.ok && response.error === 'not-found') {
 			suggestions = suggestWords(word);
 		}
+		result = response;
 		loading = false;
 	}
 </script>
@@ -36,7 +36,7 @@
 	{:else if result === null}
 		<p class="mt-8 text-center text-text-muted">Type a word to look it up!</p>
 	{:else if result.ok}
-		{#each result.entries as entry (entry.word)}
+		{#each result.entries as entry, i (i)}
 			<WordResult {entry} />
 		{/each}
 	{:else}
