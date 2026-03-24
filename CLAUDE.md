@@ -26,7 +26,7 @@ Kids Dictionary — a free, privacy-respecting dictionary PWA for Elementary sch
 
 ## Key Conventions
 
-- Theme colors are CSS custom properties (`--theme-*`) mapped to Tailwind tokens (`bg-surface`, `text-primary`, etc.) in `layout.css`
+- Theme colors are CSS custom properties (`--theme-*`) mapped to Tailwind tokens (`bg-surface`, `text-primary`, etc.) in `layout.css`. Button text uses `text-primary-text` (not `text-white`) — it resolves to white in light mode and dark in dark mode for AAA contrast on colored backgrounds.
 - Theme store is in `.svelte.ts` file for SSR-safe `$state` runes
 - WCAG AAA: 7:1+ contrast, all interactive elements are native HTML, `aria-live` on results region
 - Privacy: zero cookies, zero analytics, zero third-party scripts. Only external request is to dictionaryapi.dev
