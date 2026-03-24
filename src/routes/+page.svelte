@@ -3,15 +3,21 @@
 	import WordResult from '$lib/components/WordResult.svelte';
 	import ErrorMessage from '$lib/components/ErrorMessage.svelte';
 	import { lookupWord } from '$lib/api/dictionary';
+	import { suggestWords } from '$lib/spelling/suggest';
 	import type { DictionaryResult } from '$lib/types/dictionary';
 
 	let result: DictionaryResult | null = $state(null);
 	let loading = $state(false);
+	let suggestions: string[] = $state([]);
 
 	async function handleSearch(word: string) {
 		loading = true;
 		result = null;
+		suggestions = [];
 		result = await lookupWord(word);
+		if (!result.ok && result.error === 'not-found') {
+			suggestions = suggestWords(word);
+		}
 		loading = false;
 	}
 </script>
@@ -30,6 +36,6 @@
 			<WordResult {entry} />
 		{/each}
 	{:else}
-		<ErrorMessage error={result.error} />
+		<ErrorMessage error={result.error} {suggestions} onsuggest={handleSearch} />
 	{/if}
 </div>
