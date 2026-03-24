@@ -91,6 +91,39 @@ describe('lookupWord', () => {
 		expect(result).toEqual({ ok: false, error: 'not-found' });
 	});
 
+	it('merges multiple API entries into one', async () => {
+		const entry2 = {
+			...mockEntry,
+			phonetics: [{ text: '/hɛˈloʊ/' }],
+			meanings: [
+				{
+					partOfSpeech: 'verb',
+					definitions: [{ definition: 'To say hello', synonyms: [], antonyms: [] }],
+					synonyms: [],
+					antonyms: []
+				}
+			],
+			sourceUrls: ['https://en.wiktionary.org/wiki/hello#Verb']
+		};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: () => Promise.resolve([mockEntry, entry2])
+			})
+		);
+
+		const result = await lookupWord('hello');
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.entries).toHaveLength(1);
+		expect(result.entries[0].meanings).toHaveLength(2);
+		expect(result.entries[0].meanings[0].partOfSpeech).toBe('noun');
+		expect(result.entries[0].meanings[1].partOfSpeech).toBe('verb');
+		expect(result.entries[0].phonetics).toHaveLength(2);
+	});
+
 	it('trims and lowercases the word', async () => {
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: true,
