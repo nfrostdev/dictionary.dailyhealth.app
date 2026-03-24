@@ -22,6 +22,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Kids Dictionary — Look up any word</title>
+</svelte:head>
+
 <div class="mt-6">
 	<SearchBar onsearch={handleSearch} />
 </div>

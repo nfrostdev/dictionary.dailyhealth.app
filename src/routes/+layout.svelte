@@ -18,7 +18,7 @@
 		<ThemeToggle />
 	</header>
 
-	<main id="main-content" class="flex-1">
+	<main id="main-content" tabindex="-1" class="flex-1 outline-none">
 		{@render children()}
 	</main>
 
