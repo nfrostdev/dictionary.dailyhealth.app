@@ -1,7 +1,43 @@
-import type { DictionaryEntry, DictionaryResult, Phonetic } from '$lib/types/dictionary';
+import type {
+	Definition,
+	DictionaryEntry,
+	DictionaryResult,
+	Meaning,
+	Phonetic
+} from '$lib/types/dictionary';
 import { filterEntry, isBlockedWord } from '$lib/filter/content-filter';
 
 const API_BASE = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+
+function mergeMeanings(meanings: Meaning[]): Meaning[] {
+	const groups = new Map<string, Definition[][]>();
+	const first = new Map<string, Meaning>();
+	for (const m of meanings) {
+		const existing = groups.get(m.partOfSpeech);
+		if (existing) {
+			existing.push(m.definitions);
+		} else {
+			groups.set(m.partOfSpeech, [m.definitions]);
+			first.set(m.partOfSpeech, m);
+		}
+	}
+	return [...groups.entries()].map(([pos, defArrays]) => ({
+		...first.get(pos)!,
+		definitions: interleave(defArrays)
+	}));
+}
+
+function interleave<T>(arrays: T[][]): T[] {
+	if (arrays.length === 0) return [];
+	const result: T[] = [];
+	const maxLen = Math.max(...arrays.map((a) => a.length));
+	for (let i = 0; i < maxLen; i++) {
+		for (const arr of arrays) {
+			if (i < arr.length) result.push(arr[i]);
+		}
+	}
+	return result;
+}
 
 function mergeEntries(entries: DictionaryEntry[]): DictionaryEntry {
 	const first = entries[0];
@@ -19,7 +55,7 @@ function mergeEntries(entries: DictionaryEntry[]): DictionaryEntry {
 	return {
 		word: first.word,
 		phonetics,
-		meanings: entries.flatMap((e) => e.meanings),
+		meanings: mergeMeanings(entries.flatMap((e) => e.meanings)),
 		license: first.license,
 		sourceUrls: [...new Set(entries.flatMap((e) => e.sourceUrls))]
 	};

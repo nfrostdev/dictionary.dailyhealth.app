@@ -124,6 +124,39 @@ describe('lookupWord', () => {
 		expect(result.entries[0].phonetics).toHaveLength(2);
 	});
 
+	it('merges and interleaves duplicate parts of speech', async () => {
+		const entry2 = {
+			...mockEntry,
+			meanings: [
+				{
+					partOfSpeech: 'noun',
+					definitions: [
+						{ definition: 'Second-A', synonyms: [], antonyms: [] },
+						{ definition: 'Second-B', synonyms: [], antonyms: [] }
+					],
+					synonyms: [],
+					antonyms: []
+				}
+			]
+		};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: () => Promise.resolve([mockEntry, entry2])
+			})
+		);
+
+		const result = await lookupWord('hello');
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.entries[0].meanings).toHaveLength(1);
+		expect(result.entries[0].meanings[0].partOfSpeech).toBe('noun');
+		const defs = result.entries[0].meanings[0].definitions.map((d) => d.definition);
+		expect(defs).toEqual(['A greeting', 'Second-A', 'Second-B']);
+	});
+
 	it('trims and lowercases the word', async () => {
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: true,
