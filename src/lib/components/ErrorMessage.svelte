@@ -4,7 +4,7 @@
 		suggestions = [],
 		onsuggest
 	}: {
-		error: 'not-found' | 'network-error';
+		error: 'not-found' | 'network-error' | 'blocked';
 		suggestions?: string[];
 		onsuggest?: (word: string) => void;
 	} = $props();
@@ -14,7 +14,10 @@
 	role="alert"
 	class="mt-4 rounded-2xl border-2 border-border bg-surface p-4 text-center sm:mt-6 sm:p-6"
 >
-	{#if error === 'not-found'}
+	{#if error === 'blocked'}
+		<p class="text-xl font-semibold">Ask a grown-up about this word</p>
+		<p class="mt-2 text-text-muted">This word is best explained by a parent or teacher.</p>
+	{:else if error === 'not-found'}
 		<p class="text-xl font-semibold">We couldn't find that word</p>
 		{#if suggestions.length > 0}
 			<p class="mt-3 text-text-muted">Did you mean?</p>

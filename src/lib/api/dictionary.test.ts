@@ -91,6 +91,39 @@ describe('lookupWord', () => {
 		expect(result).toEqual({ ok: false, error: 'not-found' });
 	});
 
+	it('returns blocked for a blocked word', async () => {
+		const result = await lookupWord('fuck');
+		expect(result).toEqual({ ok: false, error: 'blocked' });
+	});
+
+	it('returns blocked when all definitions are filtered out', async () => {
+		const obsceneEntry = {
+			...mockEntry,
+			meanings: [
+				{
+					partOfSpeech: 'noun',
+					definitions: [
+						{ definition: 'A vulgar term', synonyms: [], antonyms: [] },
+						{ definition: 'An obscene expression', synonyms: [], antonyms: [] }
+					],
+					synonyms: [],
+					antonyms: []
+				}
+			]
+		};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: () => Promise.resolve([obsceneEntry])
+			})
+		);
+
+		const result = await lookupWord('hello');
+		expect(result).toEqual({ ok: false, error: 'blocked' });
+	});
+
 	it('merges multiple API entries into one', async () => {
 		const entry2 = {
 			...mockEntry,

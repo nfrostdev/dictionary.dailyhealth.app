@@ -34,4 +34,4 @@ export interface License {
 
 export type DictionaryResult =
 	| { ok: true; entries: DictionaryEntry[] }
-	| { ok: false; error: 'not-found' | 'network-error' };
+	| { ok: false; error: 'not-found' | 'network-error' | 'blocked' };

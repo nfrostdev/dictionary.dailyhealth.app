@@ -63,8 +63,11 @@ function mergeEntries(entries: DictionaryEntry[]): DictionaryEntry {
 
 export async function lookupWord(word: string): Promise<DictionaryResult> {
 	const trimmed = word.trim().toLowerCase();
-	if (!trimmed || isBlockedWord(trimmed)) {
+	if (!trimmed) {
 		return { ok: false, error: 'not-found' };
+	}
+	if (isBlockedWord(trimmed)) {
+		return { ok: false, error: 'blocked' };
 	}
 
 	try {
@@ -82,7 +85,7 @@ export async function lookupWord(word: string): Promise<DictionaryResult> {
 		const entries = raw.map(filterEntry).filter((e): e is DictionaryEntry => e !== null);
 
 		if (entries.length === 0) {
-			return { ok: false, error: 'not-found' };
+			return { ok: false, error: 'blocked' };
 		}
 
 		return { ok: true, entries: [mergeEntries(entries)] };
