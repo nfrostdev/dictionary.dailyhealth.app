@@ -18,7 +18,7 @@
 	type="button"
 	onclick={() => theme.cycle()}
 	aria-label={nextLabels[theme.current]}
-	class="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium text-text hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+	class="rounded-lg bg-surface px-3 py-2.5 text-sm font-medium text-text hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:py-1.5"
 >
 	{#if theme.current === 'system'}
 		<svg

@@ -26,15 +26,15 @@
 	<title>Kids Dictionary — Look up any word</title>
 </svelte:head>
 
-<div class="mt-6">
+<div class="mt-4 sm:mt-6">
 	<SearchBar onsearch={handleSearch} />
 </div>
 
 <div aria-live="polite" aria-atomic="true">
 	{#if loading}
-		<p class="mt-8 text-center text-text-muted">Looking up word...</p>
+		<p class="mt-6 text-center text-text-muted sm:mt-8">Looking up word...</p>
 	{:else if result === null}
-		<p class="mt-8 text-center text-text-muted">Type a word to look it up!</p>
+		<p class="mt-6 text-center text-text-muted sm:mt-8">Type a word to look it up!</p>
 	{:else if result.ok}
 		{#each result.entries as entry, i (i)}
 			<WordResult {entry} />

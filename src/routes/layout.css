@@ -58,7 +58,13 @@
 }
 
 html {
-	font-size: 112.5%; /* 18px base for kid readability */
+	font-size: 100%; /* 16px base on mobile */
+}
+
+@media (min-width: 640px) {
+	html {
+		font-size: 112.5%; /* 18px base on larger screens for kid readability */
+	}
 }
 
 body {
@@ -87,6 +93,7 @@ body {
 	top: -100%;
 	left: 1rem;
 	z-index: 100;
+	max-width: calc(100vw - 2rem);
 	padding: 0.5rem 1rem;
 	background-color: var(--color-primary);
 	color: #ffffff;

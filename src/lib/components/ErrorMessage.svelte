@@ -10,7 +10,10 @@
 	} = $props();
 </script>
 
-<div role="alert" class="mt-6 rounded-2xl border-2 border-border bg-surface p-6 text-center">
+<div
+	role="alert"
+	class="mt-4 rounded-2xl border-2 border-border bg-surface p-4 text-center sm:mt-6 sm:p-6"
+>
 	{#if error === 'not-found'}
 		<p class="text-xl font-semibold">We couldn't find that word</p>
 		{#if suggestions.length > 0}
@@ -20,7 +23,7 @@
 					<button
 						type="button"
 						onclick={() => onsuggest?.(word)}
-						class="rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+						class="rounded-lg bg-primary px-4 py-2.5 font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:py-2"
 					>
 						{word}
 					</button>

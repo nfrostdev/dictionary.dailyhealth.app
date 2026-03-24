@@ -10,7 +10,7 @@
 	onclick={play}
 	type="button"
 	aria-label="Listen to pronunciation"
-	class="inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-1.5 text-sm font-medium text-primary hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+	class="inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-2.5 text-sm font-medium text-primary hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:py-1.5"
 >
 	<svg
 		xmlns="http://www.w3.org/2000/svg"

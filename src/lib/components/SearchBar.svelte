@@ -14,7 +14,7 @@
 
 <form onsubmit={handleSubmit} role="search" class="w-full">
 	<label for="search-input" class="sr-only">Search for a word</label>
-	<div class="flex gap-3">
+	<div class="flex gap-2 sm:gap-3">
 		<input
 			bind:this={inputEl}
 			bind:value={query}
@@ -23,11 +23,11 @@
 			autocomplete="off"
 			spellcheck="true"
 			placeholder="Type a word..."
-			class="flex-1 rounded-xl border-2 border-border bg-surface px-4 py-3 text-lg text-text placeholder:text-text-muted focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+			class="min-w-0 flex-1 rounded-xl border-2 border-border bg-surface px-3 py-3 text-base text-text placeholder:text-text-muted focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:px-4 sm:text-lg"
 		/>
 		<button
 			type="submit"
-			class="rounded-xl bg-primary px-6 py-3 text-lg font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+			class="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:px-6 sm:text-lg"
 		>
 			Look up
 		</button>

@@ -9,11 +9,11 @@
 	const audioUrl = $derived(entry.phonetics.find((p) => p.audio)?.audio ?? null);
 </script>
 
-<article class="mt-6 rounded-2xl border-2 border-border bg-surface p-6">
-	<div class="mb-4 flex flex-wrap items-baseline gap-3">
-		<h2 class="text-3xl font-bold">{entry.word}</h2>
+<article class="mt-4 rounded-2xl border-2 border-border bg-surface p-4 sm:mt-6 sm:p-6">
+	<div class="mb-3 flex flex-wrap items-baseline gap-2 sm:mb-4 sm:gap-3">
+		<h2 class="text-2xl font-bold sm:text-3xl">{entry.word}</h2>
 		{#if phonetic?.text}
-			<span class="text-lg text-text-muted">{phonetic.text}</span>
+			<span class="text-base text-text-muted sm:text-lg">{phonetic.text}</span>
 		{/if}
 		{#if audioUrl}
 			<PhoneticPlayer {audioUrl} />
