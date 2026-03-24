@@ -23,7 +23,7 @@
 					<button
 						type="button"
 						onclick={() => onsuggest?.(word)}
-						class="rounded-lg bg-primary px-4 py-2.5 font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:py-2"
+						class="rounded-lg bg-primary px-4 py-2.5 font-semibold text-primary-text hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:py-2"
 					>
 						{word}
 					</button>

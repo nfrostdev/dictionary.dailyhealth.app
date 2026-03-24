@@ -27,7 +27,7 @@
 		/>
 		<button
 			type="submit"
-			class="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:px-6 sm:text-lg"
+			class="rounded-xl bg-primary px-4 py-3 text-base font-semibold text-primary-text hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:px-6 sm:text-lg"
 		>
 			Look up
 		</button>
