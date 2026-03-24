@@ -6,7 +6,6 @@
 	let { entry }: { entry: DictionaryEntry } = $props();
 
 	const phonetic = $derived(entry.phonetics.find((p) => p.text) ?? null);
-	const audioUrl = $derived(entry.phonetics.find((p) => p.audio)?.audio ?? null);
 </script>
 
 <article class="mt-4 rounded-2xl border-2 border-border bg-surface p-4 sm:mt-6 sm:p-6">
@@ -15,9 +14,7 @@
 		{#if phonetic?.text}
 			<span class="text-base text-text-muted sm:text-lg">{phonetic.text}</span>
 		{/if}
-		{#if audioUrl}
-			<PhoneticPlayer {audioUrl} />
-		{/if}
+		<PhoneticPlayer word={entry.word} />
 	</div>
 
 	{#each entry.meanings as meaning, i (i)}
