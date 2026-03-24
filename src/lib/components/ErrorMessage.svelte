@@ -16,11 +16,11 @@
 		{#if suggestions.length > 0}
 			<p class="mt-3 text-text-muted">Did you mean?</p>
 			<div class="mt-2 flex flex-wrap justify-center gap-2">
-				{#each suggestions as word}
+				{#each suggestions as word (word)}
 					<button
 						type="button"
 						onclick={() => onsuggest?.(word)}
-						class="rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+						class="rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:outline-none"
 					>
 						{word}
 					</button>

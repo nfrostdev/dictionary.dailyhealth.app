@@ -69,10 +69,7 @@ describe('lookupWord', () => {
 	});
 
 	it('returns network-error when fetch throws', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn().mockRejectedValue(new Error('Network failure'))
-		);
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network failure')));
 
 		const result = await lookupWord('hello');
 		expect(result).toEqual({ ok: false, error: 'network-error' });
@@ -92,8 +89,6 @@ describe('lookupWord', () => {
 		vi.stubGlobal('fetch', mockFetch);
 
 		await lookupWord('  Hello  ');
-		expect(mockFetch).toHaveBeenCalledWith(
-			'https://api.dictionaryapi.dev/api/v2/entries/en/hello'
-		);
+		expect(mockFetch).toHaveBeenCalledWith('https://api.dictionaryapi.dev/api/v2/entries/en/hello');
 	});
 });

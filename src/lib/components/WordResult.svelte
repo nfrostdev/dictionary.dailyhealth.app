@@ -20,7 +20,7 @@
 		{/if}
 	</div>
 
-	{#each entry.meanings as meaning}
+	{#each entry.meanings as meaning (meaning.partOfSpeech)}
 		<PartOfSpeech {meaning} />
 	{/each}
 </article>

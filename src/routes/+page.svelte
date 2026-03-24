@@ -36,7 +36,7 @@
 	{:else if result === null}
 		<p class="mt-8 text-center text-text-muted">Type a word to look it up!</p>
 	{:else if result.ok}
-		{#each result.entries as entry}
+		{#each result.entries as entry (entry.word)}
 			<WordResult {entry} />
 		{/each}
 	{:else}
