@@ -150,6 +150,29 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'wank',
 	'wanker',
 
+	// Sexual or crude words that slip past Wiktionary tags
+	'cocksucker',
+	'cocksuckers',
+	'gangbang',
+	'gangbangs',
+	'gangbanging',
+	'pornstar',
+	'pornstars',
+	'porno',
+	'pornos',
+	'pornographer',
+	'pornographers',
+	'pimps',
+	'pimping',
+	'nuru',
+	'merkin',
+	'nudie',
+	'nudies',
+	'titty',
+	'titties',
+	'jizz',
+	'butthurt',
+
 	// Drug terms
 	'adderall',
 	'ganja',
@@ -224,6 +247,14 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bpornograph(y|ic)\b/i,
 	/\bgenital(s|ia)?\b/i,
 	/\bprostitu(te|tion)\b/i,
+
+	// Porn, suicide, prostitution and slurs
+	/\bporn/i,
+	/\bsuicid/i,
+	/\bsexy\b/i,
+	/\bprostitut/i,
+	/\bpubic\b/i,
+	/\bslur\b/i,
 
 	// Drug references
 	/\billicit drug\b/i,
@@ -313,6 +344,9 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	...PROFANE_WORDS
 ];
 
+/** Extra patterns for example sentences only; definitions with these words stay. */
+const EXAMPLE_ONLY_PATTERNS: RegExp[] = [/\bnaked\b/i, /\bnude\b/i, /\btied to a bed\b/i];
+
 export function isBlockedWord(word: string): boolean {
 	return BLOCKED_WORDS.has(word.trim().toLowerCase());
 }
@@ -325,7 +359,9 @@ function filterDefinition(def: Definition): Definition | null {
 	if (isInappropriate(def.definition)) return null;
 	// An inappropriate example costs only the example, not a clean definition
 	const { example, ...rest } = def;
-	const clean = example && !isInappropriate(example) ? { ...rest, example } : rest;
+	const exampleOk =
+		example && !isInappropriate(example) && !EXAMPLE_ONLY_PATTERNS.some((p) => p.test(example));
+	const clean = exampleOk ? { ...rest, example } : rest;
 	return { ...clean, synonyms: [], antonyms: [] };
 }
 

@@ -350,4 +350,39 @@ describe('filterEntry', () => {
 			'A tall annual herb, Cannabis sativa, native to Asia.'
 		]);
 	});
+
+	it('removes definitions that point at porn, suicide or sexy', () => {
+		const entry = makeEntry('example', [
+			makeMeaning('noun', [
+				makeDef('Alternative form of porn star.'),
+				makeDef('A person who attempts suicide by hanging.'),
+				makeDef('Attractive, sexy (of a woman).'),
+				makeDef('Fine')
+			])
+		]);
+		expect(filterEntry(entry)!.meanings[0].definitions.map((d) => d.definition)).toEqual(['Fine']);
+	});
+
+	it('drops a naked example but keeps its definition', () => {
+		const entry = makeEntry('bare', [
+			makeMeaning('adjective', [makeDef('Bare, not covered by clothing.', 'He walked in naked.')])
+		]);
+		const def = filterEntry(entry)!.meanings[0].definitions[0];
+		expect(def.definition).toBe('Bare, not covered by clothing.');
+		expect(def.example).toBeUndefined();
+	});
+
+	it('keeps "naked eye" definitions', () => {
+		const entry = makeEntry('visible', [
+			makeMeaning('adjective', [makeDef('Visible to the naked eye.')])
+		]);
+		expect(filterEntry(entry)).not.toBeNull();
+	});
+});
+
+describe('new blocked words', () => {
+	it('blocks gangbang and cocksucker', () => {
+		expect(isBlockedWord('gangbang')).toBe(true);
+		expect(isBlockedWord('cocksucker')).toBe(true);
+	});
 });
