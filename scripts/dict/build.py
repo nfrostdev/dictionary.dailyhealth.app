@@ -54,7 +54,13 @@ PROPER_NOUN_CATEGORIES = re.compile(
 )
 
 # Some month senses lack the Months category (December's sits on its given-name sense).
-MONTH_GLOSS = re.compile(r'^The \w+( and last)? month of the Gregorian calendar')
+MONTH_GLOSS = re.compile(r'^The \w+( and last)? month of the\b.*\bGregorian calendars?\b')
+
+# Kaikki's categories are page-level, so person/place senses leak in beside month senses.
+NAME_JUNK = re.compile(r'\b(given name|surname|town|city|village|civil parish|county|census-designated place)\b', re.I)
+
+MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july',
+          'august', 'september', 'october', 'november', 'december']
 
 # Build fails unless these exist; a value also pins the display form.
 REQUIRED = {
@@ -109,9 +115,14 @@ def keep_sense(sense, key, pos):
     # "Alternative letter-case form of Italian" adds nothing under the same key.
     if any((a.get('word') or '').lower() == key for a in sense.get('alt_of', [])):
         return False
+    gloss = sense['glosses'][-1].strip()
+    if gloss.startswith('Alternative letter-case form of'):
+        return False
+    if pos == 'name' and NAME_JUNK.search(gloss):
+        return False
     if pos == 'name':
         names = [c.get('name', '') if isinstance(c, dict) else c for c in sense.get('categories', [])]
-        if MONTH_GLOSS.match(sense['glosses'][-1].strip()):
+        if MONTH_GLOSS.match(gloss):
             return True
         return any(PROPER_NOUN_CATEGORIES.match(n) for n in names)
     return True
@@ -200,6 +211,18 @@ def check(shards):
             problems.append(f'missing {word}')
         elif display and record.get('w', word) != display:
             problems.append(f'{word} displays as {record.get("w", word)}, expected {display}')
+    for month in MONTHS:
+        record = shards.get(shard_key(month), {}).get(month)
+        proper = [m for m in (record or {}).get('m', []) if m['p'] == 'proper noun']
+        if not proper or 'month' not in proper[0]['d'][0]['d']:
+            problems.append(f'{month} lacks a proper noun month meaning')
+    for shard in shards.values():
+        for word, record in shard.items():
+            for m in record['m']:
+                if m['p'] == 'proper noun':
+                    for d in m['d']:
+                        if NAME_JUNK.search(d['d']):
+                            problems.append(f'{word} keeps person/place sense: {d["d"][:60]}')
     polish = shards.get('pol', {}).get('polish')
     if not polish or 'w' in polish or polish['m'][0]['p'] == 'adjective':
         problems.append('polish should lead with the lowercase word')
