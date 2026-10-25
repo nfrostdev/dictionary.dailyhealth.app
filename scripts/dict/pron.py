@@ -4,6 +4,8 @@ Both are computed at build time from American IPA. Anything uncertain returns
 None, because wrong-looking output is worse than none.
 """
 
+import re
+
 import pyphen
 
 SEP = '·'
@@ -19,9 +21,14 @@ VOWELS = {
 }
 # Rhotic vowels only match when the ɹ is not followed by a vowel.
 RHOTIC = {
-    'ɜɹ': 'er', 'əɹ': 'er', 'ɑɹ': 'ar', 'ɔɹ': 'or', 'oɹ': 'or', 'ɛɹ': 'air', 'eɹ': 'air',
+    'ɜɹ': 'er', 'əɹ': 'er',
+    'ɪɚ': 'eer', 'ɛɚ': 'air', 'eɚ': 'air', 'ʊɚ': 'oor', 'ɑɹ': 'ar', 'ɔɹ': 'or', 'oɹ': 'or', 'ɛɹ': 'air', 'eɹ': 'air',
     'ɪɹ': 'eer', 'iɹ': 'eer', 'ʊɹ': 'oor', 'uɹ': 'oor',
 }
+# These already contain the r (ɚ), so they match even before a vowel.
+UNCONDITIONAL_RHOTIC = {'ɪɚ', 'ɛɚ', 'eɚ', 'ʊɚ'}
+# British centring diphthongs followed by ɹ are the American rhotic vowels.
+RHOTIC3 = {'ɪəɹ': 'eer', 'ɛəɹ': 'air', 'ʊəɹ': 'oor'}
 SYLLABIC = {'l': 'ul', 'n': 'un', 'm': 'um'}
 SYLLABIC_MARKS = '̩̍'
 CHECKED = set('æɛɪʊʌɒ')
@@ -49,8 +56,13 @@ _hyphenator = pyphen.Pyphen(lang='en_US')
 
 def _tokenize(ipa):
     """-> list of ('V', open, closed, checked) | ('C', key) | ('B', stress), or None."""
+    if 'ə\u032f' in ipa:  # non-syllabic schwa after a vowel: can't be spelled reliably
+        return None
     s = ''.join(ch for ch in ipa if ch not in DROP)
     s = s.replace('ɡ', 'g')
+    # British-only sounds: leave them out rather than guess.
+    if 'əʊ' in s or re.search('[ɪɛʊ]ə(?!ɹ)', s):
+        return None
     tokens = []
     i = 0
     n = len(s)
@@ -68,8 +80,17 @@ def _tokenize(ipa):
             tokens.append(('C', AFFRICATES[s[i:i + 2]]))
             i += 2
             continue
+        if s[i:i + 3] in RHOTIC3:
+            if i + 3 < n and _is_vowel_start(s[i + 3]):
+                return None
+            r = RHOTIC3[s[i:i + 3]]
+            tokens.append(('V', r, r, False))
+            i += 3
+            continue
         pair = s[i:i + 2]
-        if pair in RHOTIC and not (i + 2 < n and _is_vowel_start(s[i + 2])):
+        if pair in RHOTIC and (
+            pair in UNCONDITIONAL_RHOTIC or not (i + 2 < n and _is_vowel_start(s[i + 2]))
+        ):
             r = RHOTIC[pair]
             tokens.append(('V', r, r, False))
             i += 2
@@ -94,7 +115,25 @@ def _tokenize(ipa):
             i += 1
             continue
         return None
-    return tokens
+    return _fix_consonant_runs(tokens)
+
+
+def _fix_consonant_runs(tokens):
+    """Collapse t+θ ("eighth") and turn an unmarked syllabic ɹ ("yesterday") into a nucleus."""
+    merged = []
+    for t in tokens:
+        if t == ('C', 'θ') and merged and merged[-1] == ('C', 't'):
+            merged.pop()
+        merged.append(t)
+    out = []
+    for i, t in enumerate(merged):
+        if t == ('C', 'r'):
+            before = merged[i - 1][0] if i else 'B'
+            after = merged[i + 1][0] if i + 1 < len(merged) else 'B'
+            if before in 'CB' and after in 'CB':
+                t = ('V', 'er', 'er', False)
+        out.append(t)
+    return out
 
 
 def _is_vowel_start(ch):
@@ -194,7 +233,7 @@ def respell(ipa):
             coda = ''.join(CONSONANTS[c] for c in s['coda'])
             if not s['coda']:
                 text += 'eye' if not s['onset'] else 'y'
-            elif len(s['coda']) == 1:
+            elif len(coda) == 1:
                 text += 'i' + ('c' if coda == 's' else coda) + 'e'
                 out.append(text.upper() if s['stress'] == 'p' else text)
                 continue
@@ -207,16 +246,26 @@ def respell(ipa):
     return '-'.join(out)
 
 
+def _plausible(parts):
+    """Reject splits that cannot be read: vowel-less parts, or t|ion and s|ion."""
+    for i, part in enumerate(parts):
+        if not re.search('[aeiouy]', part) and "'" not in part:
+            return False
+        if i and part.startswith('ion') and parts[i - 1][-1:] in ('t', 's'):
+            return False
+    return True
+
+
 def syllables(word, ipa, parts):
     count = count_syllables(ipa)
     if not count or count < 2:
         return None
     lower = word.lower()
-    candidates = []
+    # Pyphen first: Wiktionary parts often follow etymology, not sound.
+    candidates = [_hyphenator.inserted(lower, hyphen=SEP).split(SEP)]
     if parts:
         candidates.append([p.lower() for p in parts])
-    candidates.append(_hyphenator.inserted(lower, hyphen=SEP).split(SEP))
     for cand in candidates:
-        if len(cand) == count and all(cand) and ''.join(cand) == lower:
+        if len(cand) == count and all(cand) and ''.join(cand) == lower and _plausible(cand):
             return SEP.join(cand)
     return None
