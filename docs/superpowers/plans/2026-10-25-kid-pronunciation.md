@@ -25,6 +25,7 @@
 ### Task 1: Build-time syllables and respelling
 
 **Files:**
+
 - Create: `scripts/dict/pron.py`, `scripts/dict/test_pron.py`
 - Modify: `scripts/dict/build.py` (`pick_ipa`, `collect`, `merge`, `check`), `scripts/dict/requirements.txt` (add `pyphen==0.18.1`; it is already installed in `.venv-dict`)
 - Regenerate: `static/dict/*.json`
@@ -68,6 +69,7 @@
 ### Task 2: Show it in the app
 
 **Files:**
+
 - Modify: `src/lib/types/dictionary.ts`, `src/lib/api/dictionary.ts`, `src/lib/api/dictionary.test.ts`, `src/lib/components/WordResult.svelte`, `src/lib/components/PhoneticPlayer.svelte`, `tests/e2e/search.spec.ts`, README/CLAUDE.md data-format notes if they mention IPA.
 
 **Interfaces consumed:** shard fields `s?: string`, `say?: string` (Task 1); `ipa` gone.
