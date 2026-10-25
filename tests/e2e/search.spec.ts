@@ -19,6 +19,17 @@ test.describe('Search', () => {
 		await expect(result.locator('h3').first()).toBeVisible();
 	});
 
+	test('shows syllables and a sound-it-out respelling', async ({ page }) => {
+		await page.goto('/');
+
+		await page.locator('#search-input').fill('agriculture');
+		await page.locator('button[type="submit"]').click();
+
+		const result = page.locator('article');
+		await expect(result.getByText('ag·ri·cul·ture')).toBeVisible({ timeout: 10000 });
+		await expect(result.getByText('AG-rih-kul-cher')).toBeVisible();
+	});
+
 	test('shows error for non-existent word', async ({ page }) => {
 		await page.goto('/');
 
