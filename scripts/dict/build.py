@@ -45,7 +45,6 @@ POS_LABELS = {
 BAD_TAGS = {
     'vulgar', 'offensive', 'derogatory', 'pejorative', 'slur', 'ethnic', 'obscene',
     'slang', 'archaic', 'obsolete', 'dated', 'rare', 'nonstandard', 'euphemistic', 'humorous',
-    'Internet',
 }
 BAD_TOPICS = {'sexuality', 'sex', 'drugs', 'pharmacology', 'pornography', 'lgbtq'}
 
