@@ -8,7 +8,18 @@ const config = {
 			// so dictionary shards would run the Pages Function
 			routes: {
 				include: ['/*'],
-				exclude: ['<build>', '<prerendered>', '<redirects>', '/dict/*']
+				exclude: [
+					'<build>',
+					'<prerendered>',
+					'<redirects>',
+					'/dict/*',
+					'/icons/*',
+					'/robots.txt',
+					'/sw.js',
+					'/workbox-*.js',
+					'/registerSW.js',
+					'/manifest.webmanifest'
+				]
 			}
 		})
 	},
