@@ -48,8 +48,17 @@ POS_LABELS = {
 BAD_TAGS = {
     'vulgar', 'offensive', 'derogatory', 'pejorative', 'slur', 'ethnic', 'obscene',
     'slang', 'archaic', 'obsolete', 'dated', 'rare', 'nonstandard', 'euphemistic', 'humorous',
+    'Internet', 'Leet',
 }
 BAD_TOPICS = {'sexuality', 'sex', 'drugs', 'pharmacology', 'pornography', 'lgbtq'}
+# Sense-level categories that mark slurs, suicide, sexism and filter-dodging spellings.
+BAD_CATEGORIES = re.compile(
+    r'(ethnic slurs|slurs$|^Suicide$|^Sexism$|filter-avoidance spellings|^Sex$|^Sexuality$'
+    r'|^Pornography$|^Prostitution$|^BDSM$)',
+    re.I,
+)
+# "Alternative form of porn star" points at a word we never show.
+ALT_FORM = re.compile(r'^Alternative (form|spelling) of (.+?)\.?$', re.I)
 
 # Proper nouns are mostly people and places; keep only senses in these categories.
 PROPER_NOUN_CATEGORIES = re.compile(
@@ -173,18 +182,23 @@ def keep_sense(sense, key, pos):
         return False
     if set(sense.get('topics', [])) & BAD_TOPICS:
         return False
+    names = [c.get('name', '') if isinstance(c, dict) else c for c in sense.get('categories', [])]
+    if any(BAD_CATEGORIES.search(n) for n in names):
+        return False
     # "Alternative letter-case form of Italian" adds nothing under the same key.
     if any((a.get('word') or '').lower() == key for a in sense.get('alt_of', [])):
         return False
     gloss = sense['glosses'][-1].strip()
     if gloss.startswith('Alternative letter-case form of'):
         return False
+    alt = ALT_FORM.match(gloss)
+    if alt and 'porn' in alt.group(2).lower():
+        return False
     if HTML_TAG.search(gloss):
         return False
     if pos == 'name' and NAME_JUNK.search(gloss):
         return False
     if pos == 'name':
-        names = [c.get('name', '') if isinstance(c, dict) else c for c in sense.get('categories', [])]
         if MONTH_GLOSS.match(gloss):
             return True
         return any(PROPER_NOUN_CATEGORIES.match(n) for n in names)

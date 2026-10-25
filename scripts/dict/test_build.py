@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from build import ipa_candidates, merge  # noqa: E402
+from build import ipa_candidates, keep_sense, merge  # noqa: E402
 
 SENSES = [{'d': 'x'}]
 
@@ -26,6 +26,26 @@ class MergePronunciationTest(unittest.TestCase):
     def test_required_word_uses_proper_noun_part(self):
         rec = merge('canada', [part(0, 0, '/ˈkɑ.nə.də/', 'canada'), part(2, 1, '/ˈkæn.ə.də/', 'Canada')])
         self.assertEqual(rec['say'], 'KAN-uh-duh')
+
+
+class KeepSenseTest(unittest.TestCase):
+    def sense(self, **extra):
+        return {'glosses': ['A thing.'], **extra}
+
+    def test_plain_sense_kept(self):
+        self.assertTrue(keep_sense(self.sense(categories=[{'name': 'Birdwatching'}]), 'owl', 'noun'))
+
+    def test_internet_tag_dropped(self):
+        self.assertFalse(keep_sense(self.sense(tags=['Internet']), 'lol', 'noun'))
+
+    def test_slur_category_dropped(self):
+        self.assertFalse(keep_sense(self.sense(categories=[{'name': 'English ethnic slurs'}]), 'x', 'noun'))
+
+    def test_suicide_category_dropped(self):
+        self.assertFalse(keep_sense(self.sense(categories=[{'name': 'Suicide'}]), 'x', 'noun'))
+
+    def test_alternative_form_of_porn_dropped(self):
+        self.assertFalse(keep_sense({'glosses': ['Alternative form of porn star.']}, 'x', 'noun'))
 
 
 class CandidateTest(unittest.TestCase):
