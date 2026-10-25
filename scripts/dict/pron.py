@@ -52,8 +52,8 @@ ONSETS = {tuple(c.split()) for c in (
 ONSETS = {tuple('r' if x == 'ɹ' else x for x in o) for o in ONSETS}
 
 # Respellings must not spell a swear word; a reduced vowel can be written another way.
-RUDE_SOFTEN = {'kunt': 'kuhnt', 'slut': 'slit', 'fuk': 'fuhk'}
-RUDE = {'shit', 'twat', 'wank'}
+RUDE_SOFTEN = {'kunt': 'kuhnt', 'slut': 'slit'}
+RUDE = {'shit', 'twat', 'wank', 'fuk'}
 
 _hyphenator = pyphen.Pyphen(lang='en_US')
 

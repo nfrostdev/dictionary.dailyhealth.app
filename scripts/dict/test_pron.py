@@ -60,6 +60,10 @@ class RudeGuardTest(unittest.TestCase):
 
     def test_swear_word_returns_none(self):
         self.assertIsNone(respell('/ˈʃɪt/'))
+        self.assertIsNone(respell('/ˈfʌk/'))
+
+    def test_softens_uppercase_syllable(self):
+        self.assertEqual(respell('/ˈkʌnt/'), 'KUHNT')
 
 
 class CountTest(unittest.TestCase):
