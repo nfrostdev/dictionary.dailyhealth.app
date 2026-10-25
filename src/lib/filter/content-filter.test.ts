@@ -11,7 +11,7 @@ function makeMeaning(partOfSpeech: string, defs: Definition[]): Meaning {
 }
 
 function makeEntry(word: string, meanings: Meaning[]): DictionaryEntry {
-	return { word, phonetics: [], meanings, license: { name: '', url: '' }, sourceUrls: [] };
+	return { word, meanings, license: { name: '', url: '' }, sourceUrls: [] };
 }
 
 describe('isBlockedWord', () => {

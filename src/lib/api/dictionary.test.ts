@@ -6,7 +6,8 @@ const LICENSE = { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licens
 
 const helShard: Shard = {
 	hello: {
-		ipa: '/hɛˈloʊ/',
+		s: 'hel·lo',
+		say: 'heh-LOH',
 		m: [
 			{
 				p: 'interjection',
@@ -44,7 +45,8 @@ describe('lookupWord', () => {
 			entries: [
 				{
 					word: 'hello',
-					phonetics: [{ text: '/hɛˈloʊ/' }],
+					syllables: 'hel·lo',
+					sayIt: 'heh-LOH',
 					meanings: [
 						{
 							partOfSpeech: 'interjection',
@@ -75,12 +77,15 @@ describe('lookupWord', () => {
 		});
 	});
 
-	it('leaves phonetics empty when the word has no pronunciation', async () => {
+	it('omits syllables and sayIt when the word has no pronunciation', async () => {
 		stubFetch(shardResponse(helShard));
 
 		const result = await lookupWord('helmet');
 
-		expect(result.ok && result.entries[0].phonetics).toEqual([]);
+		expect(result.ok).toBe(true);
+		const entry = result.ok ? result.entries[0] : {};
+		expect(entry).not.toHaveProperty('syllables');
+		expect(entry).not.toHaveProperty('sayIt');
 	});
 
 	it('uses the display form for capitalized words', async () => {

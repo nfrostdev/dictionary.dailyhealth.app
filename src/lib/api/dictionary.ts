@@ -8,7 +8,8 @@ export function toEntry(key: string, raw: ShardEntry): DictionaryEntry {
 	const word = raw.w ?? key;
 	return {
 		word,
-		phonetics: raw.ipa ? [{ text: raw.ipa }] : [],
+		...(raw.s ? { syllables: raw.s } : {}),
+		...(raw.say ? { sayIt: raw.say } : {}),
 		meanings: raw.m.map((m) => ({
 			partOfSpeech: m.p,
 			definitions: m.d.map((s) => ({

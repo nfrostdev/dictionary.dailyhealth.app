@@ -1,16 +1,12 @@
 export interface DictionaryEntry {
 	word: string;
-	phonetics: Phonetic[];
+	/** Spelling split into syllables, joined by U+00B7 (e.g. "ag·ri·cul·ture"). */
+	syllables?: string;
+	/** Sound-it-out respelling; the stressed syllable is uppercase (e.g. "AG-rih-kul-cher"). */
+	sayIt?: string;
 	meanings: Meaning[];
 	license: License;
 	sourceUrls: string[];
-}
-
-export interface Phonetic {
-	text?: string;
-	audio?: string;
-	sourceUrl?: string;
-	license?: License;
 }
 
 export interface Meaning {
@@ -51,7 +47,10 @@ export interface ShardMeaning {
 /** A word's record in a shard; `w` is the display form when it isn't the lowercase key. */
 export interface ShardEntry {
 	w?: string;
-	ipa?: string;
+	/** Spelling syllables joined by U+00B7. */
+	s?: string;
+	/** Respelling (American), stressed syllable uppercase. */
+	say?: string;
 	m: ShardMeaning[];
 }
 
