@@ -53,6 +53,9 @@ PROPER_NOUN_CATEGORIES = re.compile(
     r'|Provinces and territories of Canada)'
 )
 
+# Some month senses lack the Months category (December's sits on its given-name sense).
+MONTH_GLOSS = re.compile(r'^The \w+( and last)? month of the Gregorian calendar')
+
 # Build fails unless these exist; a value also pins the display form.
 REQUIRED = {
     'hello': None,
@@ -61,6 +64,7 @@ REQUIRED = {
     'ago': None,
     'italian': 'Italian',
     'january': 'January',
+    'december': 'December',
     'monday': None,
     'jupiter': None,
     'france': None,
@@ -107,6 +111,8 @@ def keep_sense(sense, key, pos):
         return False
     if pos == 'name':
         names = [c.get('name', '') if isinstance(c, dict) else c for c in sense.get('categories', [])]
+        if MONTH_GLOSS.match(sense['glosses'][-1].strip()):
+            return True
         return any(PROPER_NOUN_CATEGORIES.match(n) for n in names)
     return True
 
