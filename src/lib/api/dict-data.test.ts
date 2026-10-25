@@ -111,6 +111,7 @@ describe('static dictionary data', () => {
 		const meta = JSON.parse(readFileSync(join(DICT_DIR, '_meta.json'), 'utf8'));
 		expect(meta.license).toBe('CC BY-SA 4.0');
 	});
+
 	it('ships spelling syllables and respellings, not IPA', () => {
 		type Pron = { s?: string; say?: string; ipa?: string };
 		const bad: string[] = [];
