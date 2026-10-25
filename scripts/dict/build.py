@@ -88,6 +88,7 @@ REQUIRED = {
     'jupiter': None,
     'france': None,
     'africa': None,
+    'august': None,
     'america': None,
     # japan, canada and texas also have lowercase common nouns, so like "polish"
     # they display lowercase; only germany can pin its capital form.
@@ -103,7 +104,7 @@ REQUIRED = {
 TOP_WORDS = {
     'agriculture': 'AG-rih-kul-cher', 'write': 'RITE', 'century': 'SEN-chuh-ree',
     'be': 'BEE', 'do': 'DOO', 'are': 'AR', 'you': 'YOO', 'where': 'WAIR', 'year': 'YEER',
-    'pass': 'PAS', 'canada': 'KAN-uh-duh',
+    'pass': 'PAS', 'canada': 'KAN-uh-duh', 'august': 'AW-gust',
 }
 
 
