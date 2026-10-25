@@ -28,3 +28,4 @@ test-results
 
 # Dictionary build venv
 .venv-dict
+__pycache__/

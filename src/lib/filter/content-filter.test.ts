@@ -192,6 +192,33 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A request for sex')).toBe(true);
 	});
 
+	it('flags the paedophile spelling and rape definitions, not the rape plant', () => {
+		expect(isInappropriate('Synonym of paedophile.')).toBe(true);
+		expect(isInappropriate('To violate or rape.')).toBe(true);
+		expect(isInappropriate('A plant of the mustard family, grown as rape and coleseed.')).toBe(
+			false
+		);
+	});
+
+	it('drops rape, sex and blocked-word examples but keeps the definition', () => {
+		for (const ex of [
+			"It's a sad fact that most rapes go unreported.",
+			'To spice up their sex life.',
+			'Can I blag a fag?'
+		]) {
+			const def = filterEntry(makeEntry('w', [makeMeaning('noun', [makeDef('Unhappy.', ex)])]))
+				?.meanings[0].definitions[0];
+			expect(def?.definition).toBe('Unhappy.');
+			expect(def?.example).toBeUndefined();
+		}
+	});
+
+	it('flags have-adjective-sex but not the biology senses of sexed', () => {
+		expect(isInappropriate('To have homosexual sex in a public lavatory')).toBe(true);
+		expect(isInappropriate('Having a sex; being male or female.')).toBe(false);
+		expect(isInappropriate('Having had its sex determined; having undergone sexing.')).toBe(false);
+	});
+
 	it('does not flag words that merely contain cum', () => {
 		expect(isInappropriate('A cucumber in a salad')).toBe(false);
 		expect(isInappropriate('To accumulate snow')).toBe(false);
@@ -349,5 +376,79 @@ describe('filterEntry', () => {
 		expect(result!.meanings[0].definitions.map((d) => d.definition)).toEqual([
 			'A tall annual herb, Cannabis sativa, native to Asia.'
 		]);
+	});
+
+	it('removes definitions that point at porn, suicide or sexy', () => {
+		const entry = makeEntry('example', [
+			makeMeaning('noun', [
+				makeDef('Alternative form of porn star.'),
+				makeDef('A person who attempts suicide by hanging.'),
+				makeDef('Attractive, sexy (of a woman).'),
+				makeDef('Fine')
+			])
+		]);
+		expect(filterEntry(entry)!.meanings[0].definitions.map((d) => d.definition)).toEqual(['Fine']);
+	});
+
+	it('drops a naked example but keeps its definition', () => {
+		const entry = makeEntry('bare', [
+			makeMeaning('adjective', [makeDef('Bare, not covered by clothing.', 'He walked in naked.')])
+		]);
+		const def = filterEntry(entry)!.meanings[0].definitions[0];
+		expect(def.definition).toBe('Bare, not covered by clothing.');
+		expect(def.example).toBeUndefined();
+	});
+
+	it('keeps "naked eye" definitions', () => {
+		const entry = makeEntry('visible', [
+			makeMeaning('adjective', [makeDef('Visible to the naked eye.')])
+		]);
+		expect(filterEntry(entry)?.meanings[0].definitions[0].definition).toBe(
+			'Visible to the naked eye.'
+		);
+	});
+
+	it('drops a nude example but keeps its definition', () => {
+		const entry = makeEntry('bare', [
+			makeMeaning('adjective', [makeDef('Not covered.', 'He stood nude.')])
+		]);
+		const def = filterEntry(entry)?.meanings[0].definitions[0];
+		expect(def?.definition).toBe('Not covered.');
+		expect(def?.example).toBeUndefined();
+	});
+});
+
+describe('new blocked words', () => {
+	it('blocks gangbang and cocksucker', () => {
+		expect(isBlockedWord('gangbang')).toBe(true);
+		expect(isBlockedWord('cocksucker')).toBe(true);
+	});
+});
+
+describe('slur pattern', () => {
+	it('keeps speech and music senses of slur', () => {
+		expect(isInappropriate('simple past and past participle of slur')).toBe(false);
+		expect(isInappropriate('To pronounce indistinctly; to run words together.')).toBe(false);
+	});
+
+	it('removes slur definitions', () => {
+		expect(isInappropriate('A reptilian person, especially (ethnic slur) a Jew.')).toBe(true);
+	});
+});
+
+describe('form-of glosses of blocked words', () => {
+	const kept = (text: string) =>
+		filterEntry(makeEntry('x', [makeMeaning('noun', [makeDef(text)])]));
+
+	it('removes forms of blocked words', () => {
+		expect(kept('plural of nigger')).toBeNull();
+		expect(kept('simple past and past participle of rape')).toBeNull();
+		expect(kept('third-person singular simple present indicative of rape')).toBeNull();
+		expect(kept('comparative form of rapey')).toBeNull();
+	});
+
+	it('keeps forms of ordinary words', () => {
+		expect(kept('plural of dog')).not.toBeNull();
+		expect(kept('simple past and past participle of slur')).not.toBeNull();
 	});
 });

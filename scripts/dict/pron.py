@@ -51,6 +51,10 @@ ONSETS = {tuple(c.split()) for c in (
 ).split('|')}
 ONSETS = {tuple('r' if x == 'ɹ' else x for x in o) for o in ONSETS}
 
+# Respellings must not spell a swear word; a reduced vowel can be written another way.
+RUDE_SOFTEN = {'kunt': 'kuhnt', 'slut': 'slit'}
+RUDE = {'shit', 'twat', 'wank', 'fuk'}
+
 _hyphenator = pyphen.Pyphen(lang='en_US')
 
 
@@ -243,7 +247,21 @@ def respell(ipa):
             text += s['v'][2] if s['coda'] else s['v'][1]
         text += ''.join(CONSONANTS[c] for c in s['coda'])
         out.append(text.upper() if s['stress'] == 'p' else text)
-    return '-'.join(out)
+    return _soften(out)
+
+
+def _soften(parts):
+    """Join respelled syllables, softening or rejecting any that spell a swear word."""
+    safe = []
+    for part in parts:
+        low = part.lower()
+        if low in RUDE:
+            return None
+        if low in RUDE_SOFTEN:
+            soft = RUDE_SOFTEN[low]
+            part = soft.upper() if part.isupper() else soft
+        safe.append(part)
+    return '-'.join(safe)
 
 
 def _plausible(parts):

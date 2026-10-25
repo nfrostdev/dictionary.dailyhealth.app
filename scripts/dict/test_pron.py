@@ -53,6 +53,19 @@ class RespellTest(unittest.TestCase):
         self.assertIsNone(respell('/sɛp.tɛm/'))
 
 
+class RudeGuardTest(unittest.TestCase):
+    def test_softens_schwa_u(self):
+        self.assertEqual(respell('/sɪɡˈnɪfɪkənt/'), 'sig-NIF-ih-kuhnt')
+        self.assertEqual(respell('/ˈbɹeɪslət/'), 'BRAY-slit')
+
+    def test_swear_word_returns_none(self):
+        self.assertIsNone(respell('/ˈʃɪt/'))
+        self.assertIsNone(respell('/ˈfʌk/'))
+
+    def test_softens_uppercase_syllable(self):
+        self.assertEqual(respell('/ˈkʌnt/'), 'KUHNT')
+
+
 class CountTest(unittest.TestCase):
     def test_counts(self):
         self.assertEqual(count_syllables(AGRI), 4)
