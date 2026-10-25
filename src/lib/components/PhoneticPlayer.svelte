@@ -1,13 +1,18 @@
 <script lang="ts">
 	let { word }: { word: string } = $props();
 
-	let hasVoices = $state(false);
+	let voice = $state<SpeechSynthesisVoice | null>(null);
 
 	$effect(() => {
 		if (!('speechSynthesis' in globalThis)) return;
 
 		const check = () => {
-			hasVoices = speechSynthesis.getVoices().length > 0;
+			// Only on-device English voices: cloud voices would send the word off the device.
+			const local = speechSynthesis
+				.getVoices()
+				.filter((v) => v.localService && v.lang.toLowerCase().startsWith('en'));
+			voice =
+				local.find((v) => v.lang.replace('_', '-').toLowerCase() === 'en-us') ?? local[0] ?? null;
 		};
 
 		check();
@@ -17,13 +22,14 @@
 
 	function play() {
 		const utterance = new SpeechSynthesisUtterance(word);
+		if (voice) utterance.voice = voice;
 		utterance.lang = 'en-US';
 		utterance.rate = 0.9;
 		speechSynthesis.speak(utterance);
 	}
 </script>
 
-{#if hasVoices}
+{#if voice}
 	<button
 		onclick={play}
 		type="button"
