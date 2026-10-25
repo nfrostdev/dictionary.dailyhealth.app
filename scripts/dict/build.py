@@ -219,7 +219,11 @@ def merge(key, parts):
     if display != key:
         record['w'] = display
     withipa = [p for p in parts if p[3]]
-    best = next((p for p in withipa if respell(p[3])), withipa[0] if withipa else None)
+    best = withipa[0] if withipa else None
+    if best:
+        # Only same-rank parts compete; a capitalized or proper-noun part never overrides.
+        same = [p for p in withipa if p[0] == best[0]]
+        best = next((p for p in same if respell(p[3])), best)
     if best:
         syl = syllables(display, best[3], best[6])
         if syl:
@@ -279,7 +283,7 @@ def check(shards):
     agri = shards.get('agr', {}).get('agriculture', {})
     if agri.get('s') != 'ag\u00b7ri\u00b7cul\u00b7ture' or agri.get('say') != 'AG-rih-kul-cher':
         problems.append(f'agriculture pronunciation wrong: {agri.get("s")} {agri.get("say")}')
-    for word, say in (('write', 'RYT'), ('century', 'SEN-chuh-ree')):
+    for word, say in (('write', 'RITE'), ('century', 'SEN-chuh-ree')):
         got = shards.get(shard_key(word), {}).get(word, {}).get('say')
         if got != say:
             problems.append(f'{word} say is {got}, expected {say}')
