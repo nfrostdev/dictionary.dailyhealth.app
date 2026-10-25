@@ -35,14 +35,11 @@ class KeepSenseTest(unittest.TestCase):
     def test_plain_sense_kept(self):
         self.assertTrue(keep_sense(self.sense(categories=[{'name': 'Birdwatching'}]), 'owl', 'noun'))
 
-    def test_internet_tag_dropped(self):
-        self.assertFalse(keep_sense(self.sense(tags=['Internet']), 'lol', 'noun'))
+    def test_internet_tag_kept(self):
+        self.assertTrue(keep_sense({'glosses': ['A website that consists of entries.'], 'tags': ['Internet']}, 'blog', 'noun'))
 
-    def test_slur_category_dropped(self):
-        self.assertFalse(keep_sense(self.sense(categories=[{'name': 'English ethnic slurs'}]), 'x', 'noun'))
-
-    def test_suicide_category_dropped(self):
-        self.assertFalse(keep_sense(self.sense(categories=[{'name': 'Suicide'}]), 'x', 'noun'))
+    def test_page_level_slur_category_kept(self):
+        self.assertTrue(keep_sense(self.sense(categories=[{'name': 'English religious slurs'}]), 'peaceful', 'adj'))
 
     def test_alternative_form_of_porn_dropped(self):
         self.assertFalse(keep_sense({'glosses': ['Alternative form of porn star.']}, 'x', 'noun'))

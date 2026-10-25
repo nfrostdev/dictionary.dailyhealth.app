@@ -56,7 +56,7 @@ class RespellTest(unittest.TestCase):
 class RudeGuardTest(unittest.TestCase):
     def test_softens_schwa_u(self):
         self.assertEqual(respell('/sɪɡˈnɪfɪkənt/'), 'sig-NIF-ih-kuhnt')
-        self.assertEqual(respell('/ˈbɹeɪslət/'), 'BRAY-sluht')
+        self.assertEqual(respell('/ˈbɹeɪslət/'), 'BRAY-slit')
 
     def test_swear_word_returns_none(self):
         self.assertIsNone(respell('/ˈʃɪt/'))
