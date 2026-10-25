@@ -376,7 +376,18 @@ describe('filterEntry', () => {
 		const entry = makeEntry('visible', [
 			makeMeaning('adjective', [makeDef('Visible to the naked eye.')])
 		]);
-		expect(filterEntry(entry)).not.toBeNull();
+		expect(filterEntry(entry)?.meanings[0].definitions[0].definition).toBe(
+			'Visible to the naked eye.'
+		);
+	});
+
+	it('drops a nude example but keeps its definition', () => {
+		const entry = makeEntry('bare', [
+			makeMeaning('adjective', [makeDef('Not covered.', 'He stood nude.')])
+		]);
+		const def = filterEntry(entry)?.meanings[0].definitions[0];
+		expect(def?.definition).toBe('Not covered.');
+		expect(def?.example).toBeUndefined();
 	});
 });
 
@@ -395,5 +406,22 @@ describe('slur pattern', () => {
 
 	it('removes slur definitions', () => {
 		expect(isInappropriate('A reptilian person, especially (ethnic slur) a Jew.')).toBe(true);
+	});
+});
+
+describe('form-of glosses of blocked words', () => {
+	const kept = (text: string) =>
+		filterEntry(makeEntry('x', [makeMeaning('noun', [makeDef(text)])]));
+
+	it('removes forms of blocked words', () => {
+		expect(kept('plural of nigger')).toBeNull();
+		expect(kept('simple past and past participle of rape')).toBeNull();
+		expect(kept('third-person singular simple present indicative of rape')).toBeNull();
+		expect(kept('comparative form of rapey')).toBeNull();
+	});
+
+	it('keeps forms of ordinary words', () => {
+		expect(kept('plural of dog')).not.toBeNull();
+		expect(kept('simple past and past participle of slur')).not.toBeNull();
 	});
 });
