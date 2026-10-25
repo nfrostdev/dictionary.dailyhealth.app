@@ -28,7 +28,34 @@ test.describe('Search', () => {
 
 		const alert = page.locator('[role="alert"]');
 		await expect(alert).toBeVisible({ timeout: 10000 });
-		await expect(alert).toContainText("We couldn't find that word");
+		await expect(alert).toContainText("That word isn't in this dictionary");
+	});
+
+	test('shows proper nouns with their capital letter', async ({ page }) => {
+		await page.goto('/');
+
+		await page.locator('#search-input').fill('january');
+		await page.locator('button[type="submit"]').click();
+
+		const result = page.locator('article');
+		await expect(result).toBeVisible({ timeout: 10000 });
+		await expect(result.locator('h2')).toHaveText('January');
+	});
+
+	test('makes no requests to other websites', async ({ page, baseURL }) => {
+		const origin = new URL(baseURL!).origin;
+		const external: string[] = [];
+		page.on('request', (request) => {
+			const url = new URL(request.url());
+			if (url.protocol.startsWith('http') && url.origin !== origin) external.push(url.href);
+		});
+
+		await page.goto('/');
+		await page.locator('#search-input').fill('hello');
+		await page.locator('button[type="submit"]').click();
+		await expect(page.locator('article')).toBeVisible({ timeout: 10000 });
+
+		expect(external).toEqual([]);
 	});
 
 	test('shows spell suggestions for misspelled word', async ({ page }) => {

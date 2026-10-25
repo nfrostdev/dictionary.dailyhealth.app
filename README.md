@@ -17,9 +17,27 @@ A free, privacy-respecting dictionary web application for Elementary school chil
 
 - [SvelteKit](https://svelte.dev/) (Svelte 5) + TypeScript
 - [Tailwind CSS](https://tailwindcss.com/) v4
-- [Free Dictionary API](https://dictionaryapi.dev/)
+- Word data from [English Wiktionary](https://en.wiktionary.org/) via [kaikki.org](https://kaikki.org/), bundled as static files
 - [Cloudflare Pages](https://pages.cloudflare.com/)
 - [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/) + [axe-core](https://github.com/dequelabs/axe-core)
+
+## Dictionary data
+
+Definitions live in `static/dict/`, one JSON file per three-letter prefix (`hel.json` holds "hello", "helmet", …), so a lookup downloads a few KB and works offline once cached. The files are generated, not hand-edited. To rebuild from the latest Wiktionary dump (3.4 GB, streamed, ~5 minutes):
+
+```sh
+python3 -m venv .venv-dict
+.venv-dict/bin/pip install -r scripts/dict/requirements.txt
+curl -sL https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl \
+  | .venv-dict/bin/python -I scripts/dict/build.py - static/dict
+npx vitest run src/lib/api/dict-data.test.ts
+```
+
+The build keeps the 100,000 most common English words (by [wordfreq](https://github.com/rspeer/wordfreq)), drops senses Wiktionary tags as vulgar, offensive, slang, archaic and similar, and keeps up to three senses per part of speech. The app's content filter runs on top at lookup time.
+
+### License
+
+The dictionary data in `static/dict/` is derived from English Wiktionary and is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ## Development
 

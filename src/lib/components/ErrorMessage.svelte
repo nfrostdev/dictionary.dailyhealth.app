@@ -18,7 +18,7 @@
 		<p class="text-xl font-semibold">Ask a grown-up about this word</p>
 		<p class="mt-2 text-text-muted">This word is best explained by a parent or teacher.</p>
 	{:else if error === 'not-found'}
-		<p class="text-xl font-semibold">We couldn't find that word</p>
+		<p class="text-xl font-semibold">That word isn't in this dictionary</p>
 		{#if suggestions.length > 0}
 			<p class="mt-3 text-text-muted">Did you mean?</p>
 			<div class="mt-2 flex flex-wrap justify-center gap-2">
