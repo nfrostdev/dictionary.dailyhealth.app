@@ -68,6 +68,14 @@ describe('isBlockedWord', () => {
 		expect(isBlockedWord('Rape ')).toBe(true);
 	});
 
+	it('blocks re-review gap words', () => {
+		expect(isBlockedWord('kms')).toBe(true);
+		expect(isBlockedWord('orgasmic')).toBe(true);
+		expect(isBlockedWord('shitpost')).toBe(true);
+		expect(isBlockedWord('shitposting')).toBe(true);
+		expect(isBlockedWord('bitchy')).toBe(true);
+	});
+
 	it('blocks drug terms', () => {
 		expect(isBlockedWord('cocaine')).toBe(true);
 		expect(isBlockedWord('heroin')).toBe(true);
@@ -319,5 +327,27 @@ describe('filterEntry', () => {
 			synonyms: [],
 			antonyms: []
 		});
+	});
+
+	it('filters a definition that mentions orgasms', () => {
+		const entry = makeEntry('example', [
+			makeMeaning('noun', [makeDef('Having many orgasms.'), makeDef('Fine')])
+		]);
+		const result = filterEntry(entry);
+		expect(result!.meanings[0].definitions.map((d) => d.definition)).toEqual(['Fine']);
+	});
+
+	it('keeps a hemp-style Cannabis sativa definition but not the drug sense', () => {
+		const entry = makeEntry('hemp', [
+			makeMeaning('noun', [
+				makeDef('A tall annual herb, Cannabis sativa, native to Asia.'),
+				makeDef('Various products of this plant, including fibres and the drug cannabis.')
+			])
+		]);
+		const result = filterEntry(entry);
+		expect(result).not.toBeNull();
+		expect(result!.meanings[0].definitions.map((d) => d.definition)).toEqual([
+			'A tall annual herb, Cannabis sativa, native to Asia.'
+		]);
 	});
 });

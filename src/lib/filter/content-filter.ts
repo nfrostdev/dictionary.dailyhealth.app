@@ -11,6 +11,7 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'badass',
 	'bastard',
 	'bitch',
+	'bitchy',
 	'bollocks',
 	'bullshit',
 	'cunt',
@@ -30,6 +31,8 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'prick',
 	'scumbag',
 	'shit',
+	'shitpost',
+	'shitposting',
 	'shitty',
 	'slut',
 	'smartass',
@@ -114,6 +117,7 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'masturbate',
 	'milf',
 	'orgasm',
+	'orgasmic',
 	'orgy',
 	'pedophile',
 	'penis',
@@ -170,7 +174,10 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'xanax',
 
 	// Sexual violence
-	'rape'
+	'rape',
+
+	// Self-harm slang ("kill myself")
+	'kms'
 ]);
 
 /**
@@ -224,7 +231,7 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bnarcotics?\b/i,
 	/\bhallucinogen(ic)?\b/i,
 	/\bmarijuana\b/i,
-	/\bcannabis\b/i,
+	/\bcannabis\b(?! sativa)/i,
 	/\bcocaine\b/i,
 	/\bheroin\b/i,
 	/\bmethamph/i,
@@ -244,7 +251,7 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bbreast(s)?\b(?!.*(bird|chicken|poultry|meat|stroke|swim))/i,
 	/\bsadomasochis/i,
 	/\bfetishis/i,
-	/\borgasm(ic)?\b/i,
+	/\borgasm(s|ic)?\b/i,
 	/\berection\b/i,
 	/\bejaculat/i,
 	/\banus\b/i,
