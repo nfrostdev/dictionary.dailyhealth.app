@@ -111,16 +111,22 @@ def read_lines(src):
     return open(src, encoding='utf-8')
 
 
-def pick_ipa(entry):
-    """American (or neutral) phonemic IPA; never British or dialect lines."""
+def ipa_candidates(entry):
+    """American (or neutral) phonemic IPA in preference order; never British or dialect lines."""
     sounds = [s for s in entry.get('sounds', []) if (s.get('ipa') or '').startswith('/')]
-    for s in sounds:
-        if {'General-American', 'US'} & set(s.get('tags', [])):
-            return s['ipa']
-    for s in sounds:
-        if not s.get('tags') and not s.get('note'):
-            return s['ipa']
-    return None
+    american = [s for s in sounds if {'General-American', 'US'} & set(s.get('tags', []))]
+    ordered = (
+        [s for s in american if not s.get('note')]
+        + [s for s in american if s.get('note')]
+        + [s for s in sounds if not s.get('tags') and not s.get('note')]
+    )
+    return [s['ipa'] for s in ordered]
+
+
+def pick_ipa(entry):
+    """First candidate that respells; else the first candidate (so syllables can still count)."""
+    candidates = ipa_candidates(entry)
+    return next((c for c in candidates if respell(c)), candidates[0] if candidates else None)
 
 
 def pick_parts(entry):
@@ -212,7 +218,8 @@ def merge(key, parts):
     display = key if any(p[2] == key for p in parts) else parts[0][2]
     if display != key:
         record['w'] = display
-    best = next((p for p in parts if p[3]), None)
+    withipa = [p for p in parts if p[3]]
+    best = next((p for p in withipa if respell(p[3])), withipa[0] if withipa else None)
     if best:
         syl = syllables(display, best[3], best[6])
         if syl:
@@ -272,6 +279,10 @@ def check(shards):
     agri = shards.get('agr', {}).get('agriculture', {})
     if agri.get('s') != 'ag\u00b7ri\u00b7cul\u00b7ture' or agri.get('say') != 'AG-rih-kul-cher':
         problems.append(f'agriculture pronunciation wrong: {agri.get("s")} {agri.get("say")}')
+    for word, say in (('write', 'RYT'), ('century', 'SEN-chuh-ree')):
+        got = shards.get(shard_key(word), {}).get(word, {}).get('say')
+        if got != say:
+            problems.append(f'{word} say is {got}, expected {say}')
     for word, record in ((w, r) for shard in shards.values() for w, r in shard.items()):
         if 's' in record and record['s'].replace('\u00b7', '').lower() != word:
             problems.append(f'{word} syllables do not spell it: {record["s"]}')
