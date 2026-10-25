@@ -99,6 +99,14 @@ REQUIRED = {
 }
 
 
+# Common words whose respelling must stay right; a regression here fails the build.
+TOP_WORDS = {
+    'agriculture': 'AG-rih-kul-cher', 'write': 'RITE', 'century': 'SEN-chuh-ree',
+    'be': 'BEE', 'do': 'DOO', 'are': 'AR', 'you': 'YOO', 'where': 'WAIR', 'year': 'YEER',
+    'pass': 'PAS', 'canada': 'KAN-uh-duh',
+}
+
+
 def shard_key(word):
     return re.sub(r'[^a-z]', '_', word[:3]).ljust(3, '_')
 
@@ -111,16 +119,30 @@ def read_lines(src):
     return open(src, encoding='utf-8')
 
 
+BRITISH = re.compile('əʊ|eː|oː|ɑː(?!ɹ)')
+WEAK_NOTE = re.compile('weak|unstressed', re.I)
+STRONG_NOTE = {'strong form', 'stressed form'}
+
+
 def ipa_candidates(entry):
     """American (or neutral) phonemic IPA in preference order; never British or dialect lines."""
-    sounds = [s for s in entry.get('sounds', []) if (s.get('ipa') or '').startswith('/')]
-    american = [s for s in sounds if {'General-American', 'US'} & set(s.get('tags', []))]
-    ordered = (
-        [s for s in american if not s.get('note')]
-        + [s for s in american if s.get('note')]
-        + [s for s in sounds if not s.get('tags') and not s.get('note')]
+    sounds = []
+    for s in entry.get('sounds', []):
+        ipa = s.get('ipa') or ''
+        note = s.get('note') or ''
+        if not ipa.startswith('/') or WEAK_NOTE.search(note) or BRITISH.search(ipa):
+            continue
+        sounds.append((s, ipa, note))
+    american = [x for x in sounds if {'General-American', 'US'} & set(x[0].get('tags', []))]
+    tiers = (
+        [x for x in american if not x[2]],
+        [x for x in american if x[2]],
+        [x for x in sounds if not x[0].get('tags') and (not x[2] or x[2] in STRONG_NOTE)],
     )
-    return [s['ipa'] for s in ordered]
+    ordered = []
+    for tier in tiers:  # within a tier, rows without a length mark first (less British)
+        ordered += [x for x in tier if 'ː' not in x[1]] + [x for x in tier if 'ː' in x[1]]
+    return [x[1] for x in ordered]
 
 
 def pick_ipa(entry):
@@ -218,12 +240,12 @@ def merge(key, parts):
     display = key if any(p[2] == key for p in parts) else parts[0][2]
     if display != key:
         record['w'] = display
-    withipa = [p for p in parts if p[3]]
-    best = withipa[0] if withipa else None
-    if best:
-        # Only same-rank parts compete; a capitalized or proper-noun part never overrides.
-        same = [p for p in withipa if p[0] == best[0]]
-        best = next((p for p in same if respell(p[3])), best)
+    # Only the first sorted part speaks for the word; a later part of speech may be a
+    # different word (a name, a noun) with another pronunciation.
+    best = parts[0] if parts[0][3] else None
+    if key in REQUIRED:
+        special = next((p for p in parts if p[0] >= 1 and p[3]), None)
+        best = special or best
     if best:
         syl = syllables(display, best[3], best[6])
         if syl:
@@ -283,7 +305,7 @@ def check(shards):
     agri = shards.get('agr', {}).get('agriculture', {})
     if agri.get('s') != 'ag\u00b7ri\u00b7cul\u00b7ture' or agri.get('say') != 'AG-rih-kul-cher':
         problems.append(f'agriculture pronunciation wrong: {agri.get("s")} {agri.get("say")}')
-    for word, say in (('write', 'RITE'), ('century', 'SEN-chuh-ree')):
+    for word, say in TOP_WORDS.items():
         got = shards.get(shard_key(word), {}).get(word, {}).get('say')
         if got != say:
             problems.append(f'{word} say is {got}, expected {say}')
