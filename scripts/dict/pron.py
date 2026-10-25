@@ -19,7 +19,7 @@ VOWELS = {
 }
 # Rhotic vowels only match when the ɹ is not followed by a vowel.
 RHOTIC = {
-    'ɜɹ': 'er', 'ɑɹ': 'ar', 'ɔɹ': 'or', 'oɹ': 'or', 'ɛɹ': 'air', 'eɹ': 'air',
+    'ɜɹ': 'er', 'əɹ': 'er', 'ɑɹ': 'ar', 'ɔɹ': 'or', 'oɹ': 'or', 'ɛɹ': 'air', 'eɹ': 'air',
     'ɪɹ': 'eer', 'iɹ': 'eer', 'ʊɹ': 'oor', 'uɹ': 'oor',
 }
 SYLLABIC = {'l': 'ul', 'n': 'un', 'm': 'um'}
@@ -34,7 +34,8 @@ CONSONANTS = {
     'dʒ': 'j', 'ŋ': 'ng', 'j': 'y', 'ʍ': 'wh',
 }
 AFFRICATES = {'t͡ʃ': 'tʃ', 't͜ʃ': 'tʃ', 'tʃ': 'tʃ', 'd͡ʒ': 'dʒ', 'd͜ʒ': 'dʒ', 'dʒ': 'dʒ'}
-DROP = set('/ˑː̯ʰ')
+# Parentheses mark optional sounds; American speech keeps them.
+DROP = set('/ˑː̯ʰ()')
 BOUNDARIES = {'.': '', ' ': '', 'ˈ': 'p', 'ˌ': 's'}
 
 ONSETS = {tuple(c.split()) for c in (
@@ -189,7 +190,10 @@ def respell(ipa):
     out = []
     for s in sylls:
         text = ''.join(CONSONANTS[c] for c in s['onset'])
-        text += s['v'][2] if s['coda'] else s['v'][1]
+        if s['v'][1] == 'eye':  # 'eye' reads badly after a consonant: DY-nuh-sor
+            text += 'eye' if not s['onset'] else 'y'
+        else:
+            text += s['v'][2] if s['coda'] else s['v'][1]
         text += ''.join(CONSONANTS[c] for c in s['coda'])
         out.append(text.upper() if s['stress'] == 'p' else text)
     return '-'.join(out)

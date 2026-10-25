@@ -33,6 +33,17 @@ class RespellTest(unittest.TestCase):
         self.assertEqual(respell('/ˈvɛ.ɹi/'), 'VEH-ree')
         self.assertEqual(respell('/ˈkɑɹ/'), 'KAR')
 
+    def test_eye_only_without_onset(self):
+        self.assertEqual(respell('/ˈdaɪ.nəˌsɔɹ/'), 'DY-nuh-sor')
+        self.assertEqual(respell('/aɪ/'), 'EYE')
+        self.assertEqual(respell('/ɹaɪt/'), 'RYT')
+
+    def test_parentheses_kept_contents(self):
+        self.assertEqual(respell('/ˈsɛn.(t)ʃ(ə.)ɹi/'), 'SEN-chuh-ree')
+
+    def test_schwa_r_before_boundary(self):
+        self.assertEqual(respell('/ˈbʌ.tə(ɹ).flaɪ/'), 'BUH-ter-fly')
+
     def test_no_stress_multi(self):
         self.assertIsNone(respell('/sɛp.tɛm/'))
 
