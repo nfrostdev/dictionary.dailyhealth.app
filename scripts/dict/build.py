@@ -18,7 +18,10 @@ import re
 import sys
 from pathlib import Path
 
-from wordfreq import top_n_list
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
+
+from pron import respell, syllables  # noqa: E402
+from wordfreq import top_n_list  # noqa: E402
 
 WORD_LIMIT = 100_000
 MAX_SENSES = 3
@@ -109,9 +112,21 @@ def read_lines(src):
 
 
 def pick_ipa(entry):
-    sounds = [s for s in entry.get('sounds', []) if s.get('ipa')]
-    us = [s for s in sounds if 'US' in s.get('tags', [])]
-    return (us or sounds or [{}])[0].get('ipa')
+    """American (or neutral) phonemic IPA; never British or dialect lines."""
+    sounds = [s for s in entry.get('sounds', []) if (s.get('ipa') or '').startswith('/')]
+    for s in sounds:
+        if {'General-American', 'US'} & set(s.get('tags', [])):
+            return s['ipa']
+    for s in sounds:
+        if not s.get('tags') and not s.get('note'):
+            return s['ipa']
+    return None
+
+
+def pick_parts(entry):
+    hyphenations = entry.get('hyphenations') or []
+    parts = hyphenations[0].get('parts') if hyphenations else None
+    return parts if parts and all(isinstance(p, str) for p in parts) else None
 
 
 def pick_example(sense):
@@ -148,7 +163,7 @@ def keep_sense(sense, key, pos):
 
 
 def collect(src, words):
-    """key -> list of (rank, order, display, ipa, label, senses)."""
+    """key -> list of (rank, order, display, ipa, label, senses, hyphenation parts)."""
     contributions = {}
     order = 0
     for line in read_lines(src):
@@ -175,7 +190,7 @@ def collect(src, words):
         # so "polish" (shine) leads and "Polish" (from Poland) follows.
         rank = 2 if pos == 'name' else (0 if display == key else 1)
         contributions.setdefault(key, []).append(
-            (rank, order, display, pick_ipa(entry), POS_LABELS[pos], senses)
+            (rank, order, display, pick_ipa(entry), POS_LABELS[pos], senses, pick_parts(entry))
         )
         order += 1
     return contributions
@@ -186,7 +201,7 @@ def merge(key, parts):
     # Keep abbreviation senses only when the word has nothing else.
     has_real = any(not ABBREVIATION.match(s['d']) for p in parts for s in p[5])
     meanings = {}
-    for _, _, _, _, label, senses in parts:
+    for _, _, _, _, label, senses, _ in parts:
         bucket = meanings.setdefault(label, [])
         for s in senses:
             if has_real and ABBREVIATION.match(s['d']):
@@ -197,9 +212,14 @@ def merge(key, parts):
     display = key if any(p[2] == key for p in parts) else parts[0][2]
     if display != key:
         record['w'] = display
-    ipa = next((p[3] for p in parts if p[3]), None)
-    if ipa:
-        record['ipa'] = ipa
+    best = next((p for p in parts if p[3]), None)
+    if best:
+        syl = syllables(display, best[3], best[6])
+        if syl:
+            record['s'] = syl
+        say = respell(best[3])
+        if say:
+            record['say'] = say
     return record
 
 
@@ -249,10 +269,33 @@ def check(shards):
                     for d in m['d']:
                         if NAME_JUNK.search(d['d']):
                             problems.append(f'{word} keeps person/place sense: {d["d"][:60]}')
+    agri = shards.get('agr', {}).get('agriculture', {})
+    if agri.get('s') != 'ag\u00b7ri\u00b7cul\u00b7ture' or agri.get('say') != 'AG-rih-kul-cher':
+        problems.append(f'agriculture pronunciation wrong: {agri.get("s")} {agri.get("say")}')
+    for word, record in ((w, r) for shard in shards.values() for w, r in shard.items()):
+        if 's' in record and record['s'].replace('\u00b7', '').lower() != word:
+            problems.append(f'{word} syllables do not spell it: {record["s"]}')
     polish = shards.get('pol', {}).get('polish')
     if not polish or 'w' in polish or polish['m'][0]['p'] == 'adjective':
         problems.append('polish should lead with the lowercase word')
     return problems
+
+
+def report_coverage(shards, words):
+    records = {w: r for shard in shards.values() for w, r in shard.items()}
+    with_s = sum(1 for r in records.values() if 's' in r)
+    with_say = sum(1 for r in records.values() if 'say' in r)
+    print(f'pronunciation: {with_s}/{len(records)} with s, {with_say}/{len(records)} with say')
+    req = [w for w in REQUIRED if w in records]
+    print(f'REQUIRED: {sum(1 for w in req if "s" in records[w])}/{len(req)} with s, '
+          f'{sum(1 for w in req if "say" in records[w])}/{len(req)} with say')
+    ranked = top_n_list('en', 1100)[1000:1100]
+    present = [w for w in ranked if w in records]
+    print(f'rank 1000-1100: {len(present)} present, '
+          f'{sum(1 for w in present if "s" in records[w])} with s, '
+          f'{sum(1 for w in present if "say" in records[w])} with say')
+    for w in present[:20]:
+        print(f'  {w} -> {records[w].get("s")} | {records[w].get("say")}')
 
 
 def main(src, out_dir):
@@ -261,6 +304,7 @@ def main(src, out_dir):
     for key, parts in collect(src, words).items():
         shards.setdefault(shard_key(key), {})[key] = merge(key, parts)
     write(shards, out_dir)
+    report_coverage(shards, words)
     problems = check(shards)
     if problems:
         print('\n'.join(problems), file=sys.stderr)
