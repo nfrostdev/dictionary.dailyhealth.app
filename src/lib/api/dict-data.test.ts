@@ -14,6 +14,8 @@ const shards = new Map<string, Shard>(
 	])
 );
 
+const HTML_TAG = /<\/?[a-z][^>]*>/i;
+
 function find(word: string) {
 	return shards.get(shardKey(word))?.[word];
 }
@@ -36,6 +38,25 @@ describe('static dictionary data', () => {
 			}
 		}
 		expect(misfiled).toEqual([]);
+	});
+
+	it('has well-formed entries', () => {
+		const problems: string[] = [];
+		for (const shard of shards.values()) {
+			for (const [word, entry] of Object.entries(shard)) {
+				if (word !== word.toLowerCase()) problems.push(`${word}: key not lowercase`);
+				if (entry.m.length === 0) problems.push(`${word}: no meanings`);
+				for (const m of entry.m) {
+					if (!m.p) problems.push(`${word}: empty part of speech`);
+					if (m.d.length < 1 || m.d.length > 3) problems.push(`${word}: ${m.d.length} senses`);
+					for (const s of m.d) {
+						if (!s.d.trim()) problems.push(`${word}: empty definition`);
+						if (HTML_TAG.test(s.d) || HTML_TAG.test(s.x ?? '')) problems.push(`${word}: HTML`);
+					}
+				}
+			}
+		}
+		expect(problems).toEqual([]);
 	});
 
 	it('covers every word the spelling suggestions can offer', () => {
