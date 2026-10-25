@@ -254,7 +254,7 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bsexy\b/i,
 	/\bprostitut/i,
 	/\bpubic\b/i,
-	/\bslur\b/i,
+	/\b(ethnic|racial|religious|homophobic) slurs?\b/i,
 
 	// Drug references
 	/\billicit drug\b/i,

@@ -386,3 +386,14 @@ describe('new blocked words', () => {
 		expect(isBlockedWord('cocksucker')).toBe(true);
 	});
 });
+
+describe('slur pattern', () => {
+	it('keeps speech and music senses of slur', () => {
+		expect(isInappropriate('simple past and past participle of slur')).toBe(false);
+		expect(isInappropriate('To pronounce indistinctly; to run words together.')).toBe(false);
+	});
+
+	it('removes slur definitions', () => {
+		expect(isInappropriate('A reptilian person, especially (ethnic slur) a Jew.')).toBe(true);
+	});
+});
