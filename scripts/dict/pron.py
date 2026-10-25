@@ -190,8 +190,16 @@ def respell(ipa):
     out = []
     for s in sylls:
         text = ''.join(CONSONANTS[c] for c in s['onset'])
-        if s['v'][1] == 'eye':  # 'eye' reads badly after a consonant: DY-nuh-sor
-            text += 'eye' if not s['onset'] else 'y'
+        if s['v'][1] == 'eye':  # aɪ: see the spelling rules in the tests
+            coda = ''.join(CONSONANTS[c] for c in s['coda'])
+            if not s['coda']:
+                text += 'eye' if not s['onset'] else 'y'
+            elif len(s['coda']) == 1:
+                text += 'i' + ('c' if coda == 's' else coda) + 'e'
+                out.append(text.upper() if s['stress'] == 'p' else text)
+                continue
+            else:
+                text += 'eye' if not s['onset'] else 'y'
         else:
             text += s['v'][2] if s['coda'] else s['v'][1]
         text += ''.join(CONSONANTS[c] for c in s['coda'])

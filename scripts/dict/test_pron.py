@@ -36,7 +36,12 @@ class RespellTest(unittest.TestCase):
     def test_eye_only_without_onset(self):
         self.assertEqual(respell('/ˈdaɪ.nəˌsɔɹ/'), 'DY-nuh-sor')
         self.assertEqual(respell('/aɪ/'), 'EYE')
-        self.assertEqual(respell('/ɹaɪt/'), 'RYT')
+        self.assertEqual(respell('/ɹaɪt/'), 'RITE')
+
+    def test_closed_ai(self):
+        for ipa, want in (('/aɪs/', 'ICE'), ('/taɪm/', 'TIME'), ('/naɪs/', 'NICE'),
+                          ('/waɪz/', 'WIZE'), ('/t͡ʃaɪld/', 'CHYLD'), ('/paɪnt/', 'PYNT')):
+            self.assertEqual(respell(ipa), want)
 
     def test_parentheses_kept_contents(self):
         self.assertEqual(respell('/ˈsɛn.(t)ʃ(ə.)ɹi/'), 'SEN-chuh-ree')
