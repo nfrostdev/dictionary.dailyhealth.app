@@ -45,6 +45,7 @@ POS_LABELS = {
 BAD_TAGS = {
     'vulgar', 'offensive', 'derogatory', 'pejorative', 'slur', 'ethnic', 'obscene',
     'slang', 'archaic', 'obsolete', 'dated', 'rare', 'nonstandard', 'euphemistic', 'humorous',
+    'Internet',
 }
 BAD_TOPICS = {'sexuality', 'sex', 'drugs', 'pharmacology', 'pornography', 'lgbtq'}
 
@@ -59,7 +60,15 @@ PROPER_NOUN_CATEGORIES = re.compile(
 MONTH_GLOSS = re.compile(r'^The \w+( and last)? month of the\b.*\bGregorian calendars?\b')
 
 # Kaikki's categories are page-level, so person/place senses leak in beside month senses.
-NAME_JUNK = re.compile(r'\b(given name|surname|town|city|village|civil parish|county|census-designated place)\b', re.I)
+# Anchored to the head of the gloss: country glosses end "Capital and largest city: Tokyo."
+NAME_JUNK = re.compile(
+    r'^(An? |The )?([\w-]+ ){0,3}(given name|surname|town|city|village|civil parish|county'
+    r'|census-designated place)\b',
+    re.I,
+)
+
+# "Initialism of alt.suicide.holiday" is noise beside a word's real senses.
+ABBREVIATION = re.compile(r'^(Initialism|Abbreviation|Acronym) of\b')
 
 MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july',
           'august', 'september', 'october', 'november', 'december']
@@ -78,6 +87,12 @@ REQUIRED = {
     'france': None,
     'africa': None,
     'america': None,
+    # japan, canada and texas also have lowercase common nouns, so like "polish"
+    # they display lowercase; only germany can pin its capital form.
+    'japan': None,
+    'germany': 'Germany',
+    'canada': None,
+    'texas': None,
 }
 
 
@@ -143,6 +158,9 @@ def collect(src, words):
         pos = entry.get('pos')
         if key not in words or entry.get('lang_code') != 'en' or pos not in POS_LABELS:
             continue
+        # Possessives such as "donkey's" only repeat the base word.
+        if key.endswith("'s"):
+            continue
         senses = []
         for s in entry.get('senses', []):
             if keep_sense(s, key, pos):
@@ -165,13 +183,17 @@ def collect(src, words):
 
 def merge(key, parts):
     parts.sort(key=lambda p: (p[0], p[1]))
+    # Keep abbreviation senses only when the word has nothing else.
+    has_real = any(not ABBREVIATION.match(s['d']) for p in parts for s in p[5])
     meanings = {}
     for _, _, _, _, label, senses in parts:
         bucket = meanings.setdefault(label, [])
         for s in senses:
+            if has_real and ABBREVIATION.match(s['d']):
+                continue
             if len(bucket) < MAX_SENSES and s not in bucket:
                 bucket.append(s)
-    record = {'m': [{'p': label, 'd': defs} for label, defs in meanings.items()]}
+    record = {'m': [{'p': label, 'd': defs} for label, defs in meanings.items() if defs]}
     display = key if any(p[2] == key for p in parts) else parts[0][2]
     if display != key:
         record['w'] = display
