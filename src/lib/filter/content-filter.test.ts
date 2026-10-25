@@ -11,7 +11,7 @@ function makeMeaning(partOfSpeech: string, defs: Definition[]): Meaning {
 }
 
 function makeEntry(word: string, meanings: Meaning[]): DictionaryEntry {
-	return { word, phonetics: [], meanings, license: { name: '', url: '' }, sourceUrls: [] };
+	return { word, meanings, license: { name: '', url: '' }, sourceUrls: [] };
 }
 
 describe('isBlockedWord', () => {
@@ -61,6 +61,19 @@ describe('isBlockedWord', () => {
 		expect(isBlockedWord('orgy')).toBe(true);
 		expect(isBlockedWord('pedophile')).toBe(true);
 		expect(isBlockedWord('incest')).toBe(true);
+	});
+
+	it('blocks violent sexual terms', () => {
+		expect(isBlockedWord('rape')).toBe(true);
+		expect(isBlockedWord('Rape ')).toBe(true);
+	});
+
+	it('blocks re-review gap words', () => {
+		expect(isBlockedWord('kms')).toBe(true);
+		expect(isBlockedWord('orgasmic')).toBe(true);
+		expect(isBlockedWord('shitpost')).toBe(true);
+		expect(isBlockedWord('shitposting')).toBe(true);
+		expect(isBlockedWord('bitchy')).toBe(true);
 	});
 
 	it('blocks drug terms', () => {
@@ -171,6 +184,20 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A lecherous man.')).toBe(true);
 	});
 
+	it('flags cum and having-sex definitions', () => {
+		expect(isInappropriate('(slang) To ejaculate; to cum.')).toBe(true);
+		expect(isInappropriate('Cum on the sheets')).toBe(true);
+		expect(isInappropriate('Known for having sex outdoors')).toBe(true);
+		expect(isInappropriate('He has sex often')).toBe(true);
+		expect(isInappropriate('A request for sex')).toBe(true);
+	});
+
+	it('does not flag words that merely contain cum', () => {
+		expect(isInappropriate('A cucumber in a salad')).toBe(false);
+		expect(isInappropriate('To accumulate snow')).toBe(false);
+		expect(isInappropriate('The circumference of a circle')).toBe(false);
+	});
+
 	it('flags racial slur definitions', () => {
 		expect(isInappropriate('(mildly) A Caucasian who behaves as if they were Asian')).toBe(true);
 		expect(isInappropriate('A black person.')).toBe(true);
@@ -183,6 +210,15 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A dark-skinned person')).toBe(true);
 		expect(isInappropriate('Of mixed black and white descent')).toBe(true);
 		expect(isInappropriate('A racial slur used against')).toBe(true);
+	});
+
+	it('flags sub-Saharan only as a racial classification, not as geography', () => {
+		expect(isInappropriate('A person of sub-Saharan descent')).toBe(true);
+		expect(isInappropriate('A theory that sub-Saharan Africans were related')).toBe(true);
+		expect(isInappropriate('A burrowing mammal common in parts of sub-Saharan Africa.')).toBe(
+			false
+		);
+		expect(isInappropriate('A marshy meadow in sub-Saharan Africa.')).toBe(false);
 	});
 
 	it('does not flag anal when part of analogy/analysis', () => {
@@ -251,7 +287,7 @@ describe('filterEntry', () => {
 		expect(filterEntry(entry)).toBeNull();
 	});
 
-	it('filters based on example text too', () => {
+	it('keeps a clean definition but drops an inappropriate example', () => {
 		const entry = makeEntry('example', [
 			makeMeaning('noun', [
 				makeDef('A word', 'Used in a sexual context'),
@@ -260,7 +296,58 @@ describe('filterEntry', () => {
 		]);
 		const result = filterEntry(entry);
 		expect(result).not.toBeNull();
+		expect(result!.meanings[0].definitions).toHaveLength(2);
+		expect(result!.meanings[0].definitions[0].definition).toBe('A word');
+		expect(result!.meanings[0].definitions[0]).not.toHaveProperty('example');
+		expect(result!.meanings[0].definitions[1].definition).toBe('Another meaning');
+	});
+
+	it('keeps a clean example on a clean definition', () => {
+		const entry = makeEntry('cat', [makeMeaning('noun', [makeDef('A pet', 'The cat sat.')])]);
+		expect(filterEntry(entry)!.meanings[0].definitions[0].example).toBe('The cat sat.');
+	});
+
+	it('still drops an inappropriate definition even when its example is clean', () => {
+		const entry = makeEntry('example', [
+			makeMeaning('noun', [makeDef('A vulgar word', 'A clean sentence.'), makeDef('Fine')])
+		]);
+		const result = filterEntry(entry);
 		expect(result!.meanings[0].definitions).toHaveLength(1);
-		expect(result!.meanings[0].definitions[0].definition).toBe('Another meaning');
+		expect(result!.meanings[0].definitions[0].definition).toBe('Fine');
+	});
+
+	it('does not block a word whose only sense has an inappropriate example', () => {
+		const entry = makeEntry('africa', [
+			makeMeaning('name', [makeDef('A continent.', 'Of or relating to sub-Saharan peoples.')])
+		]);
+		const result = filterEntry(entry);
+		expect(result).not.toBeNull();
+		expect(result!.meanings[0].definitions[0]).toEqual({
+			definition: 'A continent.',
+			synonyms: [],
+			antonyms: []
+		});
+	});
+
+	it('filters a definition that mentions orgasms', () => {
+		const entry = makeEntry('example', [
+			makeMeaning('noun', [makeDef('Having many orgasms.'), makeDef('Fine')])
+		]);
+		const result = filterEntry(entry);
+		expect(result!.meanings[0].definitions.map((d) => d.definition)).toEqual(['Fine']);
+	});
+
+	it('keeps a hemp-style Cannabis sativa definition but not the drug sense', () => {
+		const entry = makeEntry('hemp', [
+			makeMeaning('noun', [
+				makeDef('A tall annual herb, Cannabis sativa, native to Asia.'),
+				makeDef('Various products of this plant, including fibres and the drug cannabis.')
+			])
+		]);
+		const result = filterEntry(entry);
+		expect(result).not.toBeNull();
+		expect(result!.meanings[0].definitions.map((d) => d.definition)).toEqual([
+			'A tall annual herb, Cannabis sativa, native to Asia.'
+		]);
 	});
 });

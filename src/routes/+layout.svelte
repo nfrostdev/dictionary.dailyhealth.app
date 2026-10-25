@@ -24,5 +24,18 @@
 
 	<footer class="py-6 text-center text-sm text-text-muted">
 		<p>A free dictionary for kids. No tracking, no ads.</p>
+		<p class="mt-1">
+			Word meanings come from
+			<a
+				href="https://en.wiktionary.org/"
+				class="rounded text-primary underline focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+				>Wiktionary</a
+			>
+			(<a
+				href="https://creativecommons.org/licenses/by-sa/4.0/"
+				class="rounded text-primary underline focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+				>CC BY-SA 4.0</a
+			>).
+		</p>
 	</footer>
 </div>

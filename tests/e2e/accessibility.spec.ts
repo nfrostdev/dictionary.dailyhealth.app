@@ -23,7 +23,7 @@ test.describe('Accessibility', () => {
 	test('error page has no accessibility violations', async ({ page }) => {
 		await page.goto('/');
 
-		await page.locator('#search-input').fill('xyznotaword123');
+		await page.locator('#search-input').fill('qqqxnotaword');
 		await page.locator('button[type="submit"]').click();
 		await expect(page.locator('[role="alert"]')).toBeVisible({ timeout: 10000 });
 

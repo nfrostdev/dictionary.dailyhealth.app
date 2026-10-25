@@ -11,6 +11,7 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'badass',
 	'bastard',
 	'bitch',
+	'bitchy',
 	'bollocks',
 	'bullshit',
 	'cunt',
@@ -30,6 +31,8 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'prick',
 	'scumbag',
 	'shit',
+	'shitpost',
+	'shitposting',
 	'shitty',
 	'slut',
 	'smartass',
@@ -114,6 +117,7 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'masturbate',
 	'milf',
 	'orgasm',
+	'orgasmic',
 	'orgy',
 	'pedophile',
 	'penis',
@@ -167,7 +171,13 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'oxycodone',
 	'psilocybin',
 	'reefer',
-	'xanax'
+	'xanax',
+
+	// Sexual violence
+	'rape',
+
+	// Self-harm slang ("kill myself")
+	'kms'
 ]);
 
 /**
@@ -221,7 +231,7 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bnarcotics?\b/i,
 	/\bhallucinogen(ic)?\b/i,
 	/\bmarijuana\b/i,
-	/\bcannabis\b/i,
+	/\bcannabis\b(?! sativa)/i,
 	/\bcocaine\b/i,
 	/\bheroin\b/i,
 	/\bmethamph/i,
@@ -241,7 +251,7 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bbreast(s)?\b(?!.*(bird|chicken|poultry|meat|stroke|swim))/i,
 	/\bsadomasochis/i,
 	/\bfetishis/i,
-	/\borgasm(ic)?\b/i,
+	/\borgasm(s|ic)?\b/i,
 	/\berection\b/i,
 	/\bejaculat/i,
 	/\banus\b/i,
@@ -263,6 +273,8 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bcondom\b/i,
 	/\boral sex\b/i,
 	/\bhave sex\b/i,
+	/\b(for|having|has|have) sex\b/i,
+	/\bcum\b/i,
 	/\bsex toy\b/i,
 	/\bfellat/i,
 	/\blecherous\b/i,
@@ -283,7 +295,8 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\ba black person\b/i,
 	/\ba white person\b/i,
 	/\bacts?\s*(like\s+a\s+)?(white|black|asian)\b/i,
-	/\bsub-Saharan\b/i,
+	// Narrowed to people: a bare match blocked geography (aardvark, bai, swee)
+	/\bsub-Saharan (Africans?|peoples?|persons?|descent|ancestry|origin)\b/i,
 	/\bred-skinned\b/i,
 	/\bdark-skinned person\b/i,
 	/\bmixed\s+(black|white|racial)\b/i,
@@ -308,16 +321,18 @@ export function isInappropriate(text: string): boolean {
 	return INAPPROPRIATE_PATTERNS.some((pattern) => pattern.test(text));
 }
 
-function filterDefinition(def: Definition): boolean {
-	if (isInappropriate(def.definition)) return false;
-	if (def.example && isInappropriate(def.example)) return false;
-	return true;
+function filterDefinition(def: Definition): Definition | null {
+	if (isInappropriate(def.definition)) return null;
+	// An inappropriate example costs only the example, not a clean definition
+	const { example, ...rest } = def;
+	const clean = example && !isInappropriate(example) ? { ...rest, example } : rest;
+	return { ...clean, synonyms: [], antonyms: [] };
 }
 
 function filterMeaning(meaning: Meaning): Meaning | null {
 	const definitions = meaning.definitions
-		.filter(filterDefinition)
-		.map((def) => ({ ...def, synonyms: [], antonyms: [] }));
+		.map(filterDefinition)
+		.filter((d): d is Definition => d !== null);
 	if (definitions.length === 0) return null;
 	return { ...meaning, definitions, synonyms: [], antonyms: [] };
 }

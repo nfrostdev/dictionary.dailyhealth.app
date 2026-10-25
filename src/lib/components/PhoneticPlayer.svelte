@@ -1,13 +1,15 @@
 <script lang="ts">
+	import { pickVoice } from '$lib/speech/pick-voice';
+
 	let { word }: { word: string } = $props();
 
-	let hasVoices = $state(false);
+	let voice = $state<SpeechSynthesisVoice | null>(null);
 
 	$effect(() => {
 		if (!('speechSynthesis' in globalThis)) return;
 
 		const check = () => {
-			hasVoices = speechSynthesis.getVoices().length > 0;
+			voice = pickVoice(speechSynthesis.getVoices());
 		};
 
 		check();
@@ -17,18 +19,21 @@
 
 	function play() {
 		const utterance = new SpeechSynthesisUtterance(word);
-		utterance.lang = 'en-US';
+		if (voice) {
+			utterance.voice = voice;
+			utterance.lang = voice.lang.replace('_', '-');
+		}
 		utterance.rate = 0.9;
 		speechSynthesis.speak(utterance);
 	}
 </script>
 
-{#if hasVoices}
+{#if voice}
 	<button
 		onclick={play}
 		type="button"
 		aria-label="Listen to pronunciation"
-		class="inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-2.5 text-sm font-medium text-primary hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:py-1.5"
+		class="mb-3 inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-2.5 text-sm font-medium text-primary hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:mb-4 sm:py-1.5"
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

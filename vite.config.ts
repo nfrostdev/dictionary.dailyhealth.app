@@ -32,11 +32,12 @@ export default defineConfig({
 				globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
 				runtimeCaching: [
 					{
-						urlPattern: /^https:\/\/api\.dictionaryapi\.dev/,
-						handler: 'NetworkFirst',
+						// Shards are cached as they are used, never precached (there are ~6,300)
+						urlPattern: /\/dict\/[a-z_]{3}\.json$/,
+						handler: 'StaleWhileRevalidate',
 						options: {
-							cacheName: 'dictionary-api',
-							expiration: { maxEntries: 500 }
+							cacheName: 'dictionary-shards',
+							expiration: { maxEntries: 1000 }
 						}
 					}
 				]
