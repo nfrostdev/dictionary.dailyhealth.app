@@ -23,6 +23,8 @@ from wordfreq import top_n_list
 WORD_LIMIT = 100_000
 MAX_SENSES = 3
 MAX_EXAMPLE_LEN = 160
+# Mirrors HTML_TAG in src/lib/api/dict-data.test.ts; keep the two in step.
+HTML_TAG = re.compile(r'</?[a-z][^>]*>', re.I)
 
 POS_LABELS = {
     'noun': 'noun',
@@ -100,7 +102,7 @@ def pick_ipa(entry):
 def pick_example(sense):
     for ex in sense.get('examples', []):
         text = (ex.get('text') or '').strip()
-        if ex.get('type') == 'example' and 0 < len(text) < MAX_EXAMPLE_LEN:
+        if ex.get('type') == 'example' and 0 < len(text) < MAX_EXAMPLE_LEN and not HTML_TAG.search(text):
             return text
     return None
 
@@ -117,6 +119,8 @@ def keep_sense(sense, key, pos):
         return False
     gloss = sense['glosses'][-1].strip()
     if gloss.startswith('Alternative letter-case form of'):
+        return False
+    if HTML_TAG.search(gloss):
         return False
     if pos == 'name' and NAME_JUNK.search(gloss):
         return False
