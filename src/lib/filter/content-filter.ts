@@ -160,8 +160,11 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'rapey',
 	'pedo',
 	'pedos',
-	'pedophile',
 	'pedophiles',
+	'paedophile',
+	'paedophiles',
+	'paedo',
+	'paedos',
 	'sx',
 	'sext',
 	'sexts',
@@ -267,7 +270,8 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bsexy\b/i,
 	/\bprostitut/i,
 	/\bpubic\b/i,
-	/\bpedophil/i,
+	/\bpa?edophil/i,
+	/\b(to|or) rape\b/i,
 	/\bsex (acts?|positions?|partners?|symbol|maniac|offenders?|work(ers?)?)\b/i,
 	/\b(ethnic|racial|religious|homophobic) slurs?\b/i,
 
@@ -362,7 +366,19 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 ];
 
 /** Extra patterns for example sentences only; definitions with these words stay. */
-const EXAMPLE_ONLY_PATTERNS: RegExp[] = [/\bnaked\b/i, /\bnude\b/i, /\btied to a bed\b/i];
+const EXAMPLE_ONLY_PATTERNS: RegExp[] = [
+	/\bnaked\b/i,
+	/\bnude\b/i,
+	/\btied to a bed\b/i,
+	/\brap(e|es|ed|ing|ists?)\b/i,
+	/\bsex\b/i
+];
+
+function exampleOk(example: string): boolean {
+	if (isInappropriate(example) || EXAMPLE_ONLY_PATTERNS.some((p) => p.test(example))) return false;
+	// "Can I blag a fag?" teaches the blocked word
+	return !(example.match(/[\w']+/g) ?? []).some(isBlockedWord);
+}
 
 /** Form-of glosses ("plural of nigger"); the captured word is the base form. */
 const FORM_OF_GLOSS =
@@ -383,9 +399,7 @@ function filterDefinition(def: Definition): Definition | null {
 	if (base && isBlockedWord(base)) return null;
 	// An inappropriate example costs only the example, not a clean definition
 	const { example, ...rest } = def;
-	const exampleOk =
-		example && !isInappropriate(example) && !EXAMPLE_ONLY_PATTERNS.some((p) => p.test(example));
-	const clean = exampleOk ? { ...rest, example } : rest;
+	const clean = example && exampleOk(example) ? { ...rest, example } : rest;
 	return { ...clean, synonyms: [], antonyms: [] };
 }
 

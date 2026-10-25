@@ -192,6 +192,27 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A request for sex')).toBe(true);
 	});
 
+	it('flags the paedophile spelling and rape definitions, not the rape plant', () => {
+		expect(isInappropriate('Synonym of paedophile.')).toBe(true);
+		expect(isInappropriate('To violate or rape.')).toBe(true);
+		expect(isInappropriate('A plant of the mustard family, grown as rape and coleseed.')).toBe(
+			false
+		);
+	});
+
+	it('drops rape, sex and blocked-word examples but keeps the definition', () => {
+		for (const ex of [
+			"It's a sad fact that most rapes go unreported.",
+			'To spice up their sex life.',
+			'Can I blag a fag?'
+		]) {
+			const def = filterEntry(makeEntry('w', [makeMeaning('noun', [makeDef('Unhappy.', ex)])]))
+				?.meanings[0].definitions[0];
+			expect(def?.definition).toBe('Unhappy.');
+			expect(def?.example).toBeUndefined();
+		}
+	});
+
 	it('flags have-adjective-sex but not the biology senses of sexed', () => {
 		expect(isInappropriate('To have homosexual sex in a public lavatory')).toBe(true);
 		expect(isInappropriate('Having a sex; being male or female.')).toBe(false);
