@@ -23,7 +23,7 @@ test.describe('Search', () => {
 		await page.goto('/');
 
 		const searchInput = page.locator('#search-input');
-		await searchInput.fill('xyznotaword123');
+		await searchInput.fill('qqqxnotaword');
 		await page.locator('button[type="submit"]').click();
 
 		const alert = page.locator('[role="alert"]');
@@ -45,7 +45,7 @@ test.describe('Search', () => {
 	test('makes no requests to other websites', async ({ page, baseURL }) => {
 		const origin = new URL(baseURL!).origin;
 		const external: string[] = [];
-		page.on('request', (request) => {
+		page.context().on('request', (request) => {
 			const url = new URL(request.url());
 			if (url.protocol.startsWith('http') && url.origin !== origin) external.push(url.href);
 		});
