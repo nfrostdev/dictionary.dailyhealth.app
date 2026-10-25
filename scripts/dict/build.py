@@ -52,7 +52,7 @@ BAD_TOPICS = {'sexuality', 'sex', 'drugs', 'pharmacology', 'pornography', 'lgbtq
 PROPER_NOUN_CATEGORIES = re.compile(
     r'^(Months|Days of the week|Countries in |Continents|Planets of the Solar System'
     r'|Dwarf planets|Oceans|Holidays|Languages$|States of the United States'
-    r'|Provinces and territories of Canada)'
+    r'|Provinces and territories of Canada|Constituent countries of the United Kingdom)'
 )
 
 # Some month senses lack the Months category (December's sits on its given-name sense).
@@ -92,6 +92,7 @@ REQUIRED = {
     'germany': 'Germany',
     'canada': None,
     'texas': None,
+    'england': 'England',
 }
 
 

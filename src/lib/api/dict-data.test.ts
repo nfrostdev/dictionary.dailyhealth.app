@@ -89,6 +89,7 @@ describe('static dictionary data', () => {
 			'germany',
 			'canada',
 			'texas',
+			'england',
 			'aardvark'
 		];
 		const hidden = required.filter((w) => {
