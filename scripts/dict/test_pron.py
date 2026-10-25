@@ -85,16 +85,16 @@ class RhoticAndBritishTest(unittest.TestCase):
             self.assertEqual(respell(ipa), want)
 
     def test_british_sounds_dropped(self):
-        for ipa in ('/ˈhəʊl.dɪŋ/', '/ˈsɛə/', '/ˈʃɪə/', '/ˈt͡ʃeə̯nəl/'):
+        for ipa in ('/ˈhəʊl.dɪŋ/', '/ˈsɛə/', '/ˈɛə.ɹə.pleɪnz/', '/ˈeə/', '/ˈʃɪə/', '/ˈt͡ʃeə̯nəl/'):
             self.assertIsNone(respell(ipa))
         self.assertEqual(respell('/ˈhɛəɹ/'), 'HAIR')
 
     def test_unmarked_syllabic_r(self):
         self.assertEqual(respell('/ˈjɛstɹdeɪ/'), 'YES-ter-day')
 
-    def test_t_theta(self):
-        self.assertEqual(respell('/eɪtθ/'), 'AYTH')
-        self.assertEqual(respell('/wɪtθ/'), 'WITH')
+    def test_t_theta_omitted(self):
+        self.assertIsNone(respell('/wɪtθ/'))
+        self.assertIsNone(respell('/ˈkʌtθɹoʊt/'))
 
     def test_silent_e_only_for_one_letter_coda(self):
         self.assertEqual(respell('/laɪŋ/'), 'LYNG')
@@ -105,6 +105,10 @@ class RhoticAndBritishTest(unittest.TestCase):
 class SyllablePlausibilityTest(unittest.TestCase):
     def test_no_t_ion_split(self):
         self.assertNotEqual(syllables('condition', '/kənˈdɪʃən/', ['con', 'dit', 'ion']), 'con·dit·ion')
+
+    def test_consonant_l_r_before_vowel_rejected(self):
+        self.assertNotEqual(syllables('tabloid', '/ˈtæ.blɔɪd/', ['tabl', 'oid']), 'tabl·oid')
+        self.assertIsNone(syllables('tabloid', '/ˈtæ.blɔɪd/', ['tabl', 'oid']))
 
     def test_vowelless_part_rejected(self):
         self.assertIsNone(syllables('rhythm', '/ˈɹɪ.ðəm/', ['rhy', 'thm']))

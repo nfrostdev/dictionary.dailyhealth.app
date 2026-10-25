@@ -61,7 +61,7 @@ def _tokenize(ipa):
     s = ''.join(ch for ch in ipa if ch not in DROP)
     s = s.replace('ɡ', 'g')
     # British-only sounds: leave them out rather than guess.
-    if 'əʊ' in s or re.search('[ɪɛʊ]ə(?!ɹ)', s):
+    if 'əʊ' in s or re.search('[eɪɛʊ]ə(?!ɹ)', s):
         return None
     tokens = []
     i = 0
@@ -119,11 +119,11 @@ def _tokenize(ipa):
 
 
 def _fix_consonant_runs(tokens):
-    """Collapse t+θ ("eighth") and turn an unmarked syllabic ɹ ("yesterday") into a nucleus."""
+    """Turn an unmarked syllabic ɹ ("yesterday") into a nucleus; t+θ ("width") is unspellable."""
     merged = []
     for t in tokens:
         if t == ('C', 'θ') and merged and merged[-1] == ('C', 't'):
-            merged.pop()
+            return None
         merged.append(t)
     out = []
     for i, t in enumerate(merged):
@@ -250,6 +250,9 @@ def _plausible(parts):
     """Reject splits that cannot be read: vowel-less parts, or t|ion and s|ion."""
     for i, part in enumerate(parts):
         if not re.search('[aeiouy]', part) and "'" not in part:
+            return False
+        # tabl·oid, inkl·ing: a consonant+l/r tail cannot be followed by a vowel
+        if re.search('[^aeiouy][lr]$', part) and i + 1 < len(parts) and parts[i + 1][0] in 'aeiouy':
             return False
         if i and part.startswith('ion') and parts[i - 1][-1:] in ('t', 's'):
             return False
