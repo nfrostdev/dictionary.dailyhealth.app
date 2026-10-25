@@ -111,4 +111,35 @@ describe('static dictionary data', () => {
 		const meta = JSON.parse(readFileSync(join(DICT_DIR, '_meta.json'), 'utf8'));
 		expect(meta.license).toBe('CC BY-SA 4.0');
 	});
+	it('ships spelling syllables and respellings, not IPA', () => {
+		type Pron = { s?: string; say?: string; ipa?: string };
+		const bad: string[] = [];
+		let withS = 0;
+		let withSay = 0;
+		for (const shard of shards.values()) {
+			for (const [word, raw] of Object.entries(shard)) {
+				const { s, say, ipa } = raw as unknown as Pron;
+				if (ipa !== undefined) bad.push(`${word} still has ipa`);
+				if (s !== undefined) {
+					withS++;
+					if (s.replace(/\u00b7/g, '').toLowerCase() !== word) bad.push(`${word} s=${s}`);
+				}
+				if (say !== undefined) {
+					withSay++;
+					const upper = say.split('-').filter((p) => p === p.toUpperCase());
+					if (!/^[a-z]+(-[a-z]+)*$/i.test(say) || upper.length !== 1)
+						bad.push(`${word} say=${say}`);
+				}
+			}
+		}
+		expect(bad).toEqual([]);
+		expect(withS).toBeGreaterThan(1000);
+		expect(withSay).toBeGreaterThan(1000);
+	});
+
+	it('gives agriculture its syllables and respelling', () => {
+		const raw = find('agriculture') as unknown as { s?: string; say?: string };
+		expect(raw.s).toBe('ag\u00b7ri\u00b7cul\u00b7ture');
+		expect(raw.say).toBe('AG-rih-kul-cher');
+	});
 });
