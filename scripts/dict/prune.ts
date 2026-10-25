@@ -3,6 +3,7 @@
 // Usage: node scripts/dict/prune.ts static/dict
 import { readdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
+import type { DictionaryEntry } from '../../src/lib/types/dictionary.ts';
 import { isBlockedWord, filterEntry } from '../../src/lib/filter/content-filter.ts';
 
 type Sense = { d: string; x?: string };
@@ -30,9 +31,10 @@ for (const file of readdirSync(dir)) {
 	for (const [key, raw] of Object.entries(shard)) {
 		if (isBlockedWord(key)) {
 			blocked++;
+			examples += raw.m.reduce((n, m) => n + m.d.filter((s) => s.x).length, 0);
 			continue;
 		}
-		const entry = filterEntry({
+		const candidate = {
 			word: key,
 			meanings: raw.m.map(({ p, d }) => ({
 				partOfSpeech: p,
@@ -42,13 +44,15 @@ for (const file of readdirSync(dir)) {
 			})),
 			license: { name: '', url: '' },
 			sourceUrls: []
-		} as never);
+		} satisfies DictionaryEntry;
+		const entry = filterEntry(candidate);
 		if (!entry) {
 			filtered++;
 			senses += raw.m.reduce((n, m) => n + m.d.length, 0);
+			examples += raw.m.reduce((n, m) => n + m.d.filter((s) => s.x).length, 0);
 			continue;
 		}
-		const before = raw.m.reduce((n, m) => n + m.d.length, 0);
+		const count = raw.m.reduce((n, m) => n + m.d.length, 0);
 		const m = entry.meanings.map((meaning) => ({
 			p: meaning.partOfSpeech,
 			d: meaning.definitions.map((def) => ({
@@ -56,7 +60,7 @@ for (const file of readdirSync(dir)) {
 				...(def.example ? { x: def.example } : {})
 			}))
 		}));
-		senses += before - m.reduce((n, x) => n + x.d.length, 0);
+		senses += count - m.reduce((n, x) => n + x.d.length, 0);
 		examples += raw.m.reduce((n, x) => n + x.d.filter((s) => s.x).length, 0);
 		examples -= m.reduce((n, x) => n + x.d.filter((s) => s.x).length, 0);
 		kept[key] = { ...raw, m };
