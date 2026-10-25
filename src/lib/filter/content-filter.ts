@@ -288,7 +288,8 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\ba black person\b/i,
 	/\ba white person\b/i,
 	/\bacts?\s*(like\s+a\s+)?(white|black|asian)\b/i,
-	/\bsub-Saharan\b/i,
+	// Narrowed to people: a bare match blocked geography (aardvark, bai, swee)
+	/\bsub-Saharan (Africans?|peoples?|persons?|descent|ancestry|origin)\b/i,
 	/\bred-skinned\b/i,
 	/\bdark-skinned person\b/i,
 	/\bmixed\s+(black|white|racial)\b/i,

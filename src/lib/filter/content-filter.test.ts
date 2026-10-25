@@ -204,6 +204,15 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A racial slur used against')).toBe(true);
 	});
 
+	it('flags sub-Saharan only as a racial classification, not as geography', () => {
+		expect(isInappropriate('A person of sub-Saharan descent')).toBe(true);
+		expect(isInappropriate('A theory that sub-Saharan Africans were related')).toBe(true);
+		expect(isInappropriate('A burrowing mammal common in parts of sub-Saharan Africa.')).toBe(
+			false
+		);
+		expect(isInappropriate('A marshy meadow in sub-Saharan Africa.')).toBe(false);
+	});
+
 	it('does not flag anal when part of analogy/analysis', () => {
 		expect(isInappropriate('An analogy between two things')).toBe(false);
 		expect(isInappropriate('A detailed analysis of the data')).toBe(false);
@@ -301,7 +310,7 @@ describe('filterEntry', () => {
 
 	it('does not block a word whose only sense has an inappropriate example', () => {
 		const entry = makeEntry('africa', [
-			makeMeaning('name', [makeDef('A continent.', 'The sub-Saharan region of Africa.')])
+			makeMeaning('name', [makeDef('A continent.', 'Of or relating to sub-Saharan peoples.')])
 		]);
 		const result = filterEntry(entry);
 		expect(result).not.toBeNull();
