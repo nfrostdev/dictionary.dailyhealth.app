@@ -21,7 +21,7 @@
 		const utterance = new SpeechSynthesisUtterance(word);
 		if (voice) {
 			utterance.voice = voice;
-			utterance.lang = voice.lang;
+			utterance.lang = voice.lang.replace('_', '-');
 		}
 		utterance.rate = 0.9;
 		speechSynthesis.speak(utterance);
