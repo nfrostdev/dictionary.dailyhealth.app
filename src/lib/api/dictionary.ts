@@ -4,7 +4,7 @@ import { shardKey } from './shard-key';
 
 const LICENSE = { name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' };
 
-function toEntry(key: string, raw: ShardEntry): DictionaryEntry {
+export function toEntry(key: string, raw: ShardEntry): DictionaryEntry {
 	const word = raw.w ?? key;
 	return {
 		word,

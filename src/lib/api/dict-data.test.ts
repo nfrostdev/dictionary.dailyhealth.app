@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { shardKey } from './shard-key';
+import { toEntry } from './dictionary';
+import { filterEntry } from '$lib/filter/content-filter';
 import { commonWords } from '$lib/spelling/words';
 import type { Shard } from '$lib/types/dictionary';
 
@@ -67,6 +69,41 @@ describe('static dictionary data', () => {
 		expect(find('hello')?.m.length).toBeGreaterThan(0);
 		expect(find('tadpole')?.m.length).toBeGreaterThan(0);
 		expect(find('january')?.w).toBe('January');
+	});
+
+	it('keeps the required words visible after the content filter', () => {
+		const required = [
+			'hello',
+			'tadpole',
+			'mitten',
+			'ago',
+			'italian',
+			'january',
+			'december',
+			'monday',
+			'jupiter',
+			'france',
+			'africa',
+			'america',
+			'japan',
+			'germany',
+			'canada',
+			'texas',
+			'aardvark'
+		];
+		const hidden = required.filter((w) => {
+			const raw = find(w);
+			return !raw || !filterEntry(toEntry(w, raw));
+		});
+		expect(hidden).toEqual([]);
+	});
+
+	it('keeps every spelling-suggestion word visible after the content filter', () => {
+		const hidden = commonWords.filter((w) => {
+			const raw = find(w);
+			return !raw || !filterEntry(toEntry(w, raw));
+		});
+		expect(hidden).toEqual([]);
 	});
 
 	it('records the CC BY-SA license', () => {
