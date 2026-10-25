@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { shardKey } from './shard-key';
 import { toEntry } from './dictionary';
-import { filterEntry } from '$lib/filter/content-filter';
+import { filterEntry, isBlockedWord } from '$lib/filter/content-filter';
 import { commonWords } from '$lib/spelling/words';
 import type { Shard } from '$lib/types/dictionary';
 
@@ -105,6 +105,27 @@ describe('static dictionary data', () => {
 			return !raw || !filterEntry(toEntry(w, raw));
 		});
 		expect(hidden).toEqual([]);
+	});
+
+	it('ships nothing the runtime content filter would remove (run scripts/dict/prune.ts)', () => {
+		const blocked: string[] = [];
+		const changed: string[] = [];
+		const texts = (e: {
+			meanings: { definitions: { definition: string; example?: string }[] }[];
+		}) => e.meanings.map((m) => m.definitions.map((d) => [d.definition, d.example]));
+		for (const shard of shards.values()) {
+			for (const [word, raw] of Object.entries(shard)) {
+				if (isBlockedWord(word)) {
+					blocked.push(word);
+					continue;
+				}
+				const entry = toEntry(word, raw);
+				const filtered = filterEntry(entry);
+				if (!filtered || JSON.stringify(texts(filtered)) !== JSON.stringify(texts(entry)))
+					changed.push(word);
+			}
+		}
+		expect({ blocked, changed }).toEqual({ blocked: [], changed: [] });
 	});
 
 	it('records the CC BY-SA license', () => {

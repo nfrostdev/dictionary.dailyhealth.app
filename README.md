@@ -30,10 +30,11 @@ python3 -m venv .venv-dict
 .venv-dict/bin/pip install -r scripts/dict/requirements.txt
 curl -sL https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl \
   | .venv-dict/bin/python -I scripts/dict/build.py - static/dict
+node scripts/dict/prune.ts static/dict
 npx vitest run src/lib/api/dict-data.test.ts
 ```
 
-The build keeps the 100,000 most common English words (by [wordfreq](https://github.com/rspeer/wordfreq)), drops senses Wiktionary tags as vulgar, offensive, slang, archaic and similar, and keeps up to three senses per part of speech. The app's content filter runs on top at lookup time.
+The build keeps the 100,000 most common English words (by [wordfreq](https://github.com/rspeer/wordfreq)), drops senses Wiktionary tags as vulgar, offensive, slang, archaic and similar, and keeps up to three senses per part of speech. `prune.ts` then runs the app's own content filter over the built shards, so blocked words and filtered senses never ship; the same filter still runs at lookup time.
 
 ### License
 
