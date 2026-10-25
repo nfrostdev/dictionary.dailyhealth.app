@@ -26,7 +26,8 @@ export function toEntry(key: string, raw: ShardEntry): DictionaryEntry {
 }
 
 export async function lookupWord(word: string): Promise<DictionaryResult> {
-	const trimmed = word.trim().toLowerCase();
+	// Phone keyboards type curly apostrophes; shard keys use straight ones
+	const trimmed = word.trim().toLowerCase().replace(/[‘’]/g, "'");
 	if (!trimmed) {
 		return { ok: false, error: 'not-found' };
 	}

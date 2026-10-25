@@ -189,4 +189,16 @@ describe('lookupWord', () => {
 		expect(mockFetch).toHaveBeenCalledWith('/dict/hel.json');
 		expect(result.ok && result.entries[0].word).toBe('hello');
 	});
+
+	it('treats curly apostrophes as straight ones', async () => {
+		const donShard: Shard = {
+			"don't": { m: [{ p: 'verb', d: [{ d: 'Do not.' }] }] }
+		};
+		const mockFetch = stubFetch(shardResponse(donShard));
+
+		const result = await lookupWord('don\u2019t');
+
+		expect(mockFetch).toHaveBeenCalledWith('/dict/don.json');
+		expect(result.ok && result.entries[0].word).toBe("don't");
+	});
 });
