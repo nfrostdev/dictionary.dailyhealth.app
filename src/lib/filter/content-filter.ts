@@ -320,6 +320,8 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\boral sex\b/i,
 	/\bhave sex\b/i,
 	/\b(for|having|has|have) sex\b/i,
+	// "have homosexual sex", but not "having a sex" or "had its sex determined"
+	/\b(having|has|have|had) (?!(a|an|the|its|their|either|each|one|both|opposite|same)\b)\w+ sex\b/i,
 	/\bcum\b/i,
 	/\bsex toy\b/i,
 	/\bfellat/i,

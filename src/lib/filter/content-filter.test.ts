@@ -192,6 +192,12 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A request for sex')).toBe(true);
 	});
 
+	it('flags have-adjective-sex but not the biology senses of sexed', () => {
+		expect(isInappropriate('To have homosexual sex in a public lavatory')).toBe(true);
+		expect(isInappropriate('Having a sex; being male or female.')).toBe(false);
+		expect(isInappropriate('Having had its sex determined; having undergone sexing.')).toBe(false);
+	});
+
 	it('does not flag words that merely contain cum', () => {
 		expect(isInappropriate('A cucumber in a salad')).toBe(false);
 		expect(isInappropriate('To accumulate snow')).toBe(false);
