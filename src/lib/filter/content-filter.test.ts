@@ -63,6 +63,11 @@ describe('isBlockedWord', () => {
 		expect(isBlockedWord('incest')).toBe(true);
 	});
 
+	it('blocks violent sexual terms', () => {
+		expect(isBlockedWord('rape')).toBe(true);
+		expect(isBlockedWord('Rape ')).toBe(true);
+	});
+
 	it('blocks drug terms', () => {
 		expect(isBlockedWord('cocaine')).toBe(true);
 		expect(isBlockedWord('heroin')).toBe(true);
@@ -171,6 +176,20 @@ describe('isInappropriate', () => {
 		expect(isInappropriate('A lecherous man.')).toBe(true);
 	});
 
+	it('flags cum and having-sex definitions', () => {
+		expect(isInappropriate('(slang) To ejaculate; to cum.')).toBe(true);
+		expect(isInappropriate('Cum on the sheets')).toBe(true);
+		expect(isInappropriate('Known for having sex outdoors')).toBe(true);
+		expect(isInappropriate('He has sex often')).toBe(true);
+		expect(isInappropriate('A request for sex')).toBe(true);
+	});
+
+	it('does not flag words that merely contain cum', () => {
+		expect(isInappropriate('A cucumber in a salad')).toBe(false);
+		expect(isInappropriate('To accumulate snow')).toBe(false);
+		expect(isInappropriate('The circumference of a circle')).toBe(false);
+	});
+
 	it('flags racial slur definitions', () => {
 		expect(isInappropriate('(mildly) A Caucasian who behaves as if they were Asian')).toBe(true);
 		expect(isInappropriate('A black person.')).toBe(true);
@@ -251,7 +270,7 @@ describe('filterEntry', () => {
 		expect(filterEntry(entry)).toBeNull();
 	});
 
-	it('filters based on example text too', () => {
+	it('keeps a clean definition but drops an inappropriate example', () => {
 		const entry = makeEntry('example', [
 			makeMeaning('noun', [
 				makeDef('A word', 'Used in a sexual context'),
@@ -260,7 +279,36 @@ describe('filterEntry', () => {
 		]);
 		const result = filterEntry(entry);
 		expect(result).not.toBeNull();
+		expect(result!.meanings[0].definitions).toHaveLength(2);
+		expect(result!.meanings[0].definitions[0].definition).toBe('A word');
+		expect(result!.meanings[0].definitions[0]).not.toHaveProperty('example');
+		expect(result!.meanings[0].definitions[1].definition).toBe('Another meaning');
+	});
+
+	it('keeps a clean example on a clean definition', () => {
+		const entry = makeEntry('cat', [makeMeaning('noun', [makeDef('A pet', 'The cat sat.')])]);
+		expect(filterEntry(entry)!.meanings[0].definitions[0].example).toBe('The cat sat.');
+	});
+
+	it('still drops an inappropriate definition even when its example is clean', () => {
+		const entry = makeEntry('example', [
+			makeMeaning('noun', [makeDef('A vulgar word', 'A clean sentence.'), makeDef('Fine')])
+		]);
+		const result = filterEntry(entry);
 		expect(result!.meanings[0].definitions).toHaveLength(1);
-		expect(result!.meanings[0].definitions[0].definition).toBe('Another meaning');
+		expect(result!.meanings[0].definitions[0].definition).toBe('Fine');
+	});
+
+	it('does not block a word whose only sense has an inappropriate example', () => {
+		const entry = makeEntry('africa', [
+			makeMeaning('name', [makeDef('A continent.', 'The sub-Saharan region of Africa.')])
+		]);
+		const result = filterEntry(entry);
+		expect(result).not.toBeNull();
+		expect(result!.meanings[0].definitions[0]).toEqual({
+			definition: 'A continent.',
+			synonyms: [],
+			antonyms: []
+		});
 	});
 });

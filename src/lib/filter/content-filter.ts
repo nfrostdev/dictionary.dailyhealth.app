@@ -167,7 +167,10 @@ const BLOCKED_WORDS: Set<string> = new Set([
 	'oxycodone',
 	'psilocybin',
 	'reefer',
-	'xanax'
+	'xanax',
+
+	// Sexual violence
+	'rape'
 ]);
 
 /**
@@ -263,6 +266,8 @@ const INAPPROPRIATE_PATTERNS: RegExp[] = [
 	/\bcondom\b/i,
 	/\boral sex\b/i,
 	/\bhave sex\b/i,
+	/\b(for|having|has|have) sex\b/i,
+	/\bcum\b/i,
 	/\bsex toy\b/i,
 	/\bfellat/i,
 	/\blecherous\b/i,
@@ -308,16 +313,18 @@ export function isInappropriate(text: string): boolean {
 	return INAPPROPRIATE_PATTERNS.some((pattern) => pattern.test(text));
 }
 
-function filterDefinition(def: Definition): boolean {
-	if (isInappropriate(def.definition)) return false;
-	if (def.example && isInappropriate(def.example)) return false;
-	return true;
+function filterDefinition(def: Definition): Definition | null {
+	if (isInappropriate(def.definition)) return null;
+	// An inappropriate example costs only the example, not a clean definition
+	const { example, ...rest } = def;
+	const clean = example && !isInappropriate(example) ? { ...rest, example } : rest;
+	return { ...clean, synonyms: [], antonyms: [] };
 }
 
 function filterMeaning(meaning: Meaning): Meaning | null {
 	const definitions = meaning.definitions
-		.filter(filterDefinition)
-		.map((def) => ({ ...def, synonyms: [], antonyms: [] }));
+		.map(filterDefinition)
+		.filter((d): d is Definition => d !== null);
 	if (definitions.length === 0) return null;
 	return { ...meaning, definitions, synonyms: [], antonyms: [] };
 }
