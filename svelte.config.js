@@ -2,7 +2,16 @@ import adapter from '@sveltejs/adapter-cloudflare';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	kit: { adapter: adapter() },
+	kit: {
+		adapter: adapter({
+			// Listing every static file overflows the 100-rule _routes.json cap,
+			// so dictionary shards would run the Pages Function
+			routes: {
+				include: ['/*'],
+				exclude: ['<build>', '<prerendered>', '<redirects>', '/dict/*']
+			}
+		})
+	},
 	vitePlugin: {
 		dynamicCompileOptions: ({ filename }) =>
 			filename.includes('node_modules') ? undefined : { runes: true }
