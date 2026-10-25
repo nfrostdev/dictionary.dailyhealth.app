@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { pickVoice } from '$lib/speech/pick-voice';
+
 	let { word }: { word: string } = $props();
 
 	let voice = $state<SpeechSynthesisVoice | null>(null);
@@ -7,12 +9,7 @@
 		if (!('speechSynthesis' in globalThis)) return;
 
 		const check = () => {
-			// Only on-device English voices: cloud voices would send the word off the device.
-			const local = speechSynthesis
-				.getVoices()
-				.filter((v) => v.localService && v.lang.toLowerCase().startsWith('en'));
-			voice =
-				local.find((v) => v.lang.replace('_', '-').toLowerCase() === 'en-us') ?? local[0] ?? null;
+			voice = pickVoice(speechSynthesis.getVoices());
 		};
 
 		check();
@@ -22,8 +19,10 @@
 
 	function play() {
 		const utterance = new SpeechSynthesisUtterance(word);
-		if (voice) utterance.voice = voice;
-		utterance.lang = 'en-US';
+		if (voice) {
+			utterance.voice = voice;
+			utterance.lang = voice.lang;
+		}
 		utterance.rate = 0.9;
 		speechSynthesis.speak(utterance);
 	}
@@ -34,7 +33,7 @@
 		onclick={play}
 		type="button"
 		aria-label="Listen to pronunciation"
-		class="inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-2.5 text-sm font-medium text-primary hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:py-1.5"
+		class="mb-3 inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-2.5 text-sm font-medium text-primary hover:bg-border focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:mb-4 sm:py-1.5"
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

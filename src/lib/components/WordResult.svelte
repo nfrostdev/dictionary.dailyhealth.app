@@ -12,14 +12,13 @@
 	<div class="mb-3 flex flex-wrap items-baseline gap-2 sm:mb-4 sm:gap-3">
 		<h2 class="text-2xl font-bold sm:text-3xl">{entry.word}</h2>
 		{#if entry.syllables}
-			<span class="text-base text-text-muted sm:text-lg" aria-label={`Syllables: ${syllableLabel}`}
-				>{entry.syllables}</span
-			>
+			<span class="text-base text-text-muted sm:text-lg" aria-hidden="true">{entry.syllables}</span>
+			<span class="sr-only">Syllables: {syllableLabel}</span>
 		{/if}
 	</div>
-	<div class="mb-3 flex flex-wrap items-center gap-2 sm:mb-4 sm:gap-3">
+	<div class="flex flex-wrap items-center gap-2 sm:gap-3">
 		{#if entry.sayIt}
-			<p class="text-base text-text-muted sm:text-lg">
+			<p class="mb-3 text-base text-text-muted sm:mb-4 sm:text-lg">
 				Say it: <strong class="font-bold text-text">{entry.sayIt}</strong>
 			</p>
 		{/if}
